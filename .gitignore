@@ -1,0 +1,31 @@
+# Rust build output
+target/
+services/backend/target/
+services/backend/data/
+
+# Node dependencies
+node_modules/
+.expo/
+
+# Local browser and test artifacts
+.playwright-cli/
+.superpowers/brainstorm/*/state/
+
+# Generated release bundles
+release/
+
+# Original furniture source archive; the mobile app uses optimized GLB files beside it
+apps/mobile/assets/D-glb/O5618-家具/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Local source artwork used to prepare public product images
+.artwork-source/
+.artwork-review/

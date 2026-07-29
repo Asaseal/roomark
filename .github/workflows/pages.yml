@@ -1,0 +1,59 @@
+name: Deploy product website
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/pages.yml"
+      - "apps/website/**"
+      - "docs/images/product/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify website
+        run: |
+          node --test apps/website/tests/*.test.cjs
+          node --check apps/website/script.js
+          node --check apps/website/server.cjs
+
+  deploy:
+    needs: verify
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - name: Assemble static website
+        shell: bash
+        run: |
+          mkdir -p _site/assets/product
+          cp apps/website/index.html _site/
+          cp apps/website/styles.css _site/
+          cp apps/website/script.js _site/
+          cp apps/website/favicon.svg _site/
+          cp docs/images/product/*.jpg _site/assets/product/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

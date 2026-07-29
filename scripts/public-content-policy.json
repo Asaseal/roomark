@@ -1,0 +1,47 @@
+{
+  "textExtensions": [
+    ".cjs",
+    ".css",
+    ".html",
+    ".js",
+    ".json",
+    ".kt",
+    ".md",
+    ".ps1",
+    ".rs",
+    ".swift",
+    ".toml",
+    ".ts",
+    ".tsx",
+    ".yml",
+    ".yaml"
+  ],
+  "excludedPaths": [
+    "apps/web-preview/vendor/",
+    "apps/web-furnish/vendor/",
+    "services/backend/target/"
+  ],
+  "excludedFiles": [
+    "scripts/public-content-policy.json"
+  ],
+  "forbiddenPatterns": [
+    "黑天鹅",
+    "黑客松",
+    "半小时自动更新",
+    "演示",
+    "hackathon",
+    "\\bdemo\\b",
+    "\\bprototype\\s+(app|ui|preview|project)",
+    "roadshow",
+    "judge-qa"
+  ],
+  "removedPaths": [
+    "apps/promo-video",
+    "apps/simulator-preview",
+    "apps/admin",
+    "assets/promo",
+    "docs/superpowers",
+    "roomark半小时自动更新.md",
+    "roomark规范.md"
+  ]
+}

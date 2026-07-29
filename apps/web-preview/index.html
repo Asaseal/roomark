@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Roomark Mobile Preview</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%230f766e'/%3E%3Cpath d='M18 47V18h15c10 0 16 5 16 13 0 6-3 10-9 12l10 4H39l-9-4h-3v4H18Zm9-12h6c5 0 7-1 7-4s-2-4-7-4h-6v8Z' fill='%23fffdf8'/%3E%3C/svg%3E" />
+    <base href="/web-preview/" />
+    <link rel="stylesheet" href="./styles.css?v=20260615-map" />
+  </head>
+  <body>
+    <main class="stage" aria-label="Roomark mobile app preview">
+      <section class="phone" aria-label="Roomark device preview frame">
+        <div class="dynamic-island"></div>
+        <div class="app">
+          <header class="topbar">
+            <div>
+              <p class="kicker">Roomark</p>
+              <h1 id="screenTitle">今天看哪套？</h1>
+            </div>
+            <button class="icon-button" type="button" aria-label="添加房源">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 5v14" />
+                <path d="M5 12h14" />
+              </svg>
+            </button>
+          </header>
+
+          <section class="content screen active" id="homeScreen" aria-label="首页">
+            <article class="hero-home">
+              <div>
+                <p class="label">当前记录</p>
+                <h2>绿荫路 12 号</h2>
+                <p class="muted">42m² · ¥4,800/月 · 已留证 6 项</p>
+              </div>
+              <span class="soft-score">86</span>
+            </article>
+
+            <div class="primary-actions">
+              <button class="big-action" type="button" data-target="scan">
+                <span class="action-glyph scan-glyph"></span>
+                <strong>扫描房间</strong>
+              </button>
+              <button class="big-action light" type="button" data-target="library">
+                <span class="action-glyph library-glyph"></span>
+                <strong>看房型库</strong>
+              </button>
+            </div>
+
+            <section class="quiet-section">
+              <div class="section-head">
+                <h2>最近扫描</h2>
+                <button class="text-button" type="button" data-target="library">房型库</button>
+              </div>
+              <article class="mini-room-card">
+                <div class="mini-room iso-a">
+                  <span class="iso-bed"></span>
+                  <span class="iso-desk"></span>
+                  <span class="iso-window"></span>
+                </div>
+                <div>
+                  <h3>南向一居</h3>
+                  <p class="muted">4.8m × 3.6m · 床可放，沙发偏挤</p>
+                </div>
+              </article>
+              <article class="mini-room-card">
+                <div class="mini-room iso-b">
+                  <span class="iso-bed"></span>
+                  <span class="iso-desk"></span>
+                  <span class="iso-window"></span>
+                </div>
+                <div>
+                  <h3>河岸小开间</h3>
+                  <p class="muted">4.2m × 3.1m · 书桌位置较好</p>
+                </div>
+              </article>
+            </section>
+          </section>
+
+          <section class="content screen" id="scanScreen" aria-label="扫描">
+            <section class="plan-import">
+              <label class="drop-plan" for="planInput">
+                <input id="planInput" type="file" accept="image/*,.pdf" />
+                <span class="plan-icon"></span>
+                <strong id="planLabel">丢入平面图</strong>
+                <small>图片 / 文档</small>
+              </label>
+              <label class="height-field">
+                <span>层高</span>
+                <input id="heightInput" type="number" inputmode="decimal" value="3.0" step="0.1" min="2" />
+                <em>m</em>
+              </label>
+              <button class="simulate-button" type="button" id="simulatePlan">生成 3D 空间</button>
+            </section>
+
+            <div class="camera-view">
+              <div class="camera-noise"></div>
+              <div class="camera-grid"></div>
+              <div class="camera-frame">
+                <span class="scan-corner one"></span>
+                <span class="scan-corner two"></span>
+                <span class="scan-corner three"></span>
+                <span class="scan-corner four"></span>
+                <span class="scan-pulse"></span>
+              </div>
+              <div class="camera-hud">
+                <span>房间结构扫描</span>
+                <strong>激光雷达</strong>
+              </div>
+            </div>
+
+            <div class="scan-controls">
+              <button class="secondary-button" type="button" id="finishScan">结束扫描</button>
+              <button class="primary-button compact" type="button">修正</button>
+            </div>
+
+            <article class="scan-result-card" id="scanResultCard" hidden>
+              <div>
+                <p class="label">已生成房间记录</p>
+                <h2>现场扫描房型</h2>
+                <p class="muted">3m × 3m × 3m · 已保存墙面、地面、尺寸节点和家具识别标签。</p>
+              </div>
+              <button class="primary-button compact" type="button" id="openScannedRoom">查看房源详情</button>
+            </article>
+
+            <section class="preview-section">
+              <div>
+                <p class="label">高斯投影预览</p>
+                <h2>模拟空间 · 3m × 3m × 3m</h2>
+              </div>
+              <div class="gaussian-preview room-3d large">
+                <span class="gaussian-cloud cloud-a"></span>
+                <span class="gaussian-cloud cloud-b"></span>
+                <span class="gaussian-cloud cloud-c"></span>
+                <span class="gaussian-splat splat-a"></span>
+                <span class="gaussian-splat splat-b"></span>
+                <span class="gaussian-splat splat-c"></span>
+                <span class="gaussian-scan-plane"></span>
+                <span class="wall left"></span>
+                <span class="wall back"></span>
+                <span class="floor"></span>
+                <span class="furniture bed">床</span>
+                <span class="furniture table">桌</span>
+                <span class="furniture sofa">沙发</span>
+              </div>
+              <div class="roomplan-readout">
+                <div><span>宽</span><strong>3.0m</strong></div>
+                <div><span>深</span><strong>3.0m</strong></div>
+                <div><span>高</span><strong>3.0m</strong></div>
+              </div>
+            </section>
+          </section>
+
+          <section class="content screen" id="libraryScreen" aria-label="房型库">
+            <article class="scan-saved-banner" id="scanSavedBanner" hidden>
+              <div>
+                <p class="label">刚刚扫描</p>
+                <h2>现场扫描房型已保存</h2>
+                <p class="muted">包含尺寸节点、家具标签和高斯投影预览，可继续进入详情或软装模拟。</p>
+              </div>
+              <button class="secondary-button" type="button" id="openSavedScan">查看详情</button>
+            </article>
+
+            <article class="house-model-library">
+              <div class="section-head">
+                <div>
+                  <p class="label">房型库</p>
+                  <h2>可交互 3D 房型</h2>
+                  <p class="muted">每套房型均可直接旋转查看，进入详情后继续记录风险或模拟软装。</p>
+                </div>
+                <span class="engine-pill">8 套</span>
+              </div>
+              <div class="house-model-list" id="modelList"></div>
+            </article>
+
+            <article class="two-bedroom-showcase">
+              <div class="section-head">
+                <div>
+                  <p class="label">3D 场景模拟</p>
+                  <h2>两居室一卫 · 68m²</h2>
+                </div>
+                <span class="engine-pill">2 室 1 厅 1 卫</span>
+              </div>
+              <div class="apartment-scene" id="twoBedroomScene" data-scene-mode="furnished">
+                <span class="apt-shadow"></span>
+                <div class="true-3d-stage" aria-label="两居室一卫 3D 自动旋转模型">
+                  <div class="true-3d-model">
+                    <span class="model-base"></span>
+                    <span class="room-cuboid living" style="--x: 14px; --y: 92px; --w: 154px; --d: 108px; --h: 34px;">
+                      <i class="top">客厅</i><i class="front"></i><i class="right"></i>
+                    </span>
+                    <span class="room-cuboid master" style="--x: 16px; --y: 22px; --w: 118px; --d: 78px; --h: 42px;">
+                      <i class="top">主卧</i><i class="front"></i><i class="right"></i>
+                    </span>
+                    <span class="room-cuboid second" style="--x: 150px; --y: 24px; --w: 102px; --d: 76px; --h: 38px;">
+                      <i class="top">次卧</i><i class="front"></i><i class="right"></i>
+                    </span>
+                    <span class="room-cuboid bath" style="--x: 178px; --y: 104px; --w: 62px; --d: 56px; --h: 32px;">
+                      <i class="top">卫</i><i class="front"></i><i class="right"></i>
+                    </span>
+                    <span class="room-cuboid kitchen" style="--x: 236px; --y: 102px; --w: 70px; --d: 64px; --h: 34px;">
+                      <i class="top">厨房</i><i class="front"></i><i class="right"></i>
+                    </span>
+                    <span class="room-cuboid balcony" style="--x: 96px; --y: -10px; --w: 106px; --d: 38px; --h: 24px;">
+                      <i class="top">阳台</i><i class="front"></i><i class="right"></i>
+                    </span>
+                    <span class="model-furniture sofa-3d">沙发</span>
+                    <span class="model-furniture table-3d">餐桌</span>
+                    <span class="model-furniture bed-main-3d">床</span>
+                    <span class="model-furniture bed-second-3d">床</span>
+                    <span class="model-marker risk-water">潮</span>
+                    <span class="model-marker risk-noise">噪</span>
+                  </div>
+                </div>
+                <span class="apt-room apt-living"><em>客厅</em></span>
+                <span class="apt-room apt-master"><em>主卧</em></span>
+                <span class="apt-room apt-second"><em>次卧</em></span>
+                <span class="apt-room apt-bath"><em>卫</em></span>
+                <span class="apt-room apt-kitchen"><em>厨房</em></span>
+                <span class="apt-room apt-balcony"><em>阳台</em></span>
+                <span class="apt-door door-main"></span>
+                <span class="apt-door door-bed"></span>
+                <span class="apt-window window-living"></span>
+                <span class="apt-window window-master"></span>
+                <span class="apt-furniture apt-sofa">沙发</span>
+                <span class="apt-furniture apt-dining">餐桌</span>
+                <span class="apt-furniture apt-master-bed">床</span>
+                <span class="apt-furniture apt-second-bed">床</span>
+                <span class="apt-furniture apt-wardrobe">柜</span>
+                <span class="apt-furniture apt-basin">台盆</span>
+              </div>
+              <div class="scene-readout">
+                <div><span>主卧</span><strong>3.6 × 3.2m</strong></div>
+                <div><span>次卧</span><strong>3.0 × 2.8m</strong></div>
+                <div><span>卫生间</span><strong>干湿分离</strong></div>
+              </div>
+              <div class="scene-controls">
+                <button class="scene-mode-button active" type="button" data-scene-mode="furnished">家具视图</button>
+                <button class="scene-mode-button" type="button" data-scene-mode="structure">结构视图</button>
+                <button class="scene-mode-button" type="button" data-scene-mode="risk">看房风险</button>
+              </div>
+            </article>
+
+            <article class="real-3d-workbench">
+              <div class="section-head">
+                <div>
+                  <p class="label">主打功能</p>
+                  <h2>真实 3D 家具试摆</h2>
+                </div>
+                <span class="engine-pill">Three.js</span>
+              </div>
+              <div class="real-3d-layout">
+                <div class="real-3d-canvas-wrap">
+                  <canvas id="roomarkThreeCanvas" aria-label="两居室一卫真实 3D 房间模型"></canvas>
+                  <div class="walk-joystick" id="walkJoystick" aria-label="室内漫游摇杆">
+                    <button type="button" data-move="forward">前</button>
+                    <button type="button" data-move="left">左</button>
+                    <button type="button" data-move="right">右</button>
+                    <button type="button" data-move="back">后</button>
+                  </div>
+                  <div class="three-status" id="threeStatus">自动 60° 旋转预览</div>
+                </div>
+                <div class="furniture-database">
+                  <div>
+                    <p class="label">家具数据层</p>
+                    <h3>样例家具尺寸</h3>
+                    <p class="muted">当前使用本地样例数据；接入外部商品数据前需要确认来源与授权。</p>
+                  </div>
+                  <button class="furniture-data-card active" type="button" data-furniture-id="bed">
+                    <strong>双人床</strong>
+                    <span>200 × 150 × 40cm</span>
+                  </button>
+                  <button class="furniture-data-card" type="button" data-furniture-id="sofa">
+                    <strong>双人沙发</strong>
+                    <span>180 × 82 × 78cm</span>
+                  </button>
+                  <button class="furniture-data-card" type="button" data-furniture-id="desk">
+                    <strong>书桌</strong>
+                    <span>120 × 60 × 75cm</span>
+                  </button>
+                  <button class="furniture-data-card" type="button" data-furniture-id="table">
+                    <strong>餐桌</strong>
+                    <span>140 × 80 × 74cm</span>
+                  </button>
+                </div>
+              </div>
+            </article>
+
+            <section class="library-grid">
+              <article class="library-card">
+                <div class="library-card-copy">
+                  <h3>绿荫路 12 号</h3>
+                  <p>南向一居 · 42m² · 适合单人通勤居住</p>
+                </div>
+                <div class="room-3d small tone-a">
+                  <span class="wall left"></span>
+                  <span class="wall back"></span>
+                  <span class="floor"></span>
+                  <span class="furniture bed">床</span>
+                  <span class="furniture table">桌</span>
+                </div>
+                <div class="library-card-meta">
+                  <span>采光好</span>
+                  <span>已扫描房型</span>
+                  <span>可放床桌</span>
+                </div>
+                <button class="furnish-button" type="button" data-enter-furnish data-room-title="绿荫路 12 号">开始自由布置</button>
+              </article>
+
+              <article class="library-card">
+                <div class="library-card-copy">
+                  <h3>河岸公寓</h3>
+                  <p>小开间 · 38m² · 沙发区偏紧凑</p>
+                </div>
+                <div class="room-3d small tone-b">
+                  <span class="wall left"></span>
+                  <span class="wall back"></span>
+                  <span class="floor"></span>
+                  <span class="furniture bed">床</span>
+                  <span class="furniture sofa">沙发</span>
+                </div>
+                <div class="library-card-meta">
+                  <span>近地铁</span>
+                  <span>已扫描房型</span>
+                  <span>需试摆收纳</span>
+                </div>
+                <button class="furnish-button" type="button" data-enter-furnish data-room-title="河岸公寓">开始自由布置</button>
+              </article>
+
+              <article class="library-card">
+                <div class="library-card-copy">
+                  <h3>海棠里 3 号</h3>
+                  <p>一室一厅 · 45m² · 客厅可做工作区</p>
+                </div>
+                <div class="room-3d small tone-c">
+                  <span class="wall left"></span>
+                  <span class="wall back"></span>
+                  <span class="floor"></span>
+                  <span class="furniture bed">床</span>
+                  <span class="furniture table">桌</span>
+                  <span class="furniture sofa">沙发</span>
+                </div>
+                <div class="library-card-meta">
+                  <span>空间完整</span>
+                  <span>已扫描房型</span>
+                  <span>软装潜力高</span>
+                </div>
+                <button class="furnish-button" type="button" data-enter-furnish data-room-title="海棠里 3 号">开始自由布置</button>
+              </article>
+            </section>
+          </section>
+
+          <section class="content screen map-screen" id="mapScreen" aria-label="我的看房地图">
+            <div class="map-toolbar">
+              <div>
+                <p class="label">离线可操作</p>
+                <h2>我的看房地图</h2>
+              </div>
+              <span class="map-mode-badge">离线地图</span>
+            </div>
+
+            <div class="map-filters" role="group" aria-label="房源地图筛选">
+              <button class="map-filter active" type="button" data-map-filter="all">全部</button>
+              <button class="map-filter" type="button" data-map-filter="visited">已看</button>
+              <button class="map-filter" type="button" data-map-filter="scanned">已扫描</button>
+              <button class="map-filter" type="button" data-map-filter="high-risk">高风险</button>
+              <button class="map-filter" type="button" data-map-filter="favorite">已收藏</button>
+            </div>
+
+            <div class="roomark-map" id="roomarkMap" aria-label="已记录房源位置地图">
+              <div class="map-water"></div>
+              <span class="map-road road-one"></span>
+              <span class="map-road road-two"></span>
+              <span class="map-road road-three"></span>
+              <span class="map-road road-four"></span>
+              <span class="map-block block-one"></span>
+              <span class="map-block block-two"></span>
+              <span class="map-block block-three"></span>
+              <span class="map-block block-four"></span>
+              <span class="map-place place-jingan">静安</span>
+              <span class="map-place place-suzhou">苏州河</span>
+              <span class="map-place place-huangpu">黄浦</span>
+              <div class="map-marker-layer" id="mapMarkerLayer"></div>
+              <div class="current-location" id="currentLocation" aria-label="当前位置">
+                <span></span>
+              </div>
+              <button class="map-location-button" id="mapLocationButton" type="button" aria-label="回到当前位置">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></svg>
+              </button>
+              <button class="map-add-button" id="mapAddNearby" type="button">使用当前位置附近</button>
+              <p class="map-long-press-hint" id="mapLongPressHint">长按地图，也可以保存新的看房位置</p>
+            </div>
+
+            <div class="map-empty-state" id="mapEmptyState" hidden>
+              <strong>当前筛选暂无房源</strong>
+              <span>切换筛选，或在地图上长按添加位置。</span>
+            </div>
+
+            <article class="map-property-sheet" id="mapPropertySheet" hidden>
+              <button class="map-sheet-close" id="mapSheetClose" type="button" aria-label="关闭房源卡片">×</button>
+              <div class="map-property-thumb" id="mapPropertyThumb" aria-hidden="true"><span></span></div>
+              <div class="map-property-main">
+                <div class="map-property-heading">
+                  <div>
+                    <p class="label" id="mapPropertyStatus">已扫描</p>
+                    <h3 id="mapPropertyTitle">晨光 L 型两居</h3>
+                  </div>
+                  <strong id="mapPropertyPrice">¥4,800/月</strong>
+                </div>
+                <p class="map-property-address" id="mapPropertyAddress">静安区新闸路 928 号</p>
+                <div class="map-property-metrics">
+                  <span><b id="mapPropertyDistance">1.2 km</b> 距离</span>
+                  <span><b id="mapPropertyCommute">18 分钟</b> 通勤</span>
+                  <span><b id="mapPropertyRisk">风险 2</b> 风险</span>
+                  <span><b id="mapPropertyScore">86</b> 评分</span>
+                </div>
+                <div class="map-property-actions">
+                  <button class="secondary-button" id="mapViewDetail" type="button">查看详情</button>
+                  <button class="primary-button" id="mapStartFurnish" type="button">开始模拟软装</button>
+                </div>
+              </div>
+            </article>
+          </section>
+
+          <section class="content screen" id="detailScreen" aria-label="房源详情">
+            <article class="detail-hero-card">
+              <div>
+                <p class="label">房源判断</p>
+                <h2 id="detailTitle">晨光 L 型两居</h2>
+                <p class="muted" id="detailSubtitle">88 m² · 2 室 1 厅 1 厨 1 卫 · 浅木、米白、开放餐客厅</p>
+              </div>
+              <span class="detail-score" id="detailScore">86</span>
+            </article>
+
+            <section class="detail-summary-grid" aria-label="房源成本摘要">
+              <article>
+                <span>月租</span>
+                <strong id="detailRent">¥4,800</strong>
+              </article>
+              <article>
+                <span>押金</span>
+                <strong id="detailDeposit">¥4,800</strong>
+              </article>
+              <article>
+                <span>通勤</span>
+                <strong id="detailCommute">18 分钟</strong>
+              </article>
+              <article>
+                <span>入住成本</span>
+                <strong id="detailCost">约 ¥14,400</strong>
+              </article>
+            </section>
+
+            <article class="risk-brief-card">
+              <div>
+                <p class="label">风险摘要</p>
+                <h3 id="detailRiskTitle">2 项待确认 · 1 项高风险</h3>
+                <p class="muted" id="detailRiskText">卫生间墙角有潮痕，签约前建议让房东确认维修记录。</p>
+              </div>
+              <span class="risk-badge">需复核</span>
+            </article>
+
+            <section class="inspection-list" aria-label="看房记录">
+              <div class="section-head">
+                <div>
+                  <p class="label">看房记录</p>
+                  <h2>现场证据包</h2>
+                </div>
+                <span class="source-pill" id="detailEvidenceCount">已记录 6 项</span>
+              </div>
+              <article><strong>墙面发霉</strong><span class="status warning">注意</span><em>卧室窗边轻微霉点</em></article>
+              <article><strong>漏水痕迹</strong><span class="status danger">风险</span><em>卫生间墙角潮痕明显</em></article>
+              <article><strong>家具破损</strong><span class="status safe">正常</span><em>床架和桌面暂无明显损坏</em></article>
+              <article><strong>插座数量</strong><span class="status warning">注意</span><em>工作区插座偏少，需要排插</em></article>
+              <article><strong>采光噪音</strong><span class="status safe">正常</span><em>南向采光好，窗外噪音低</em></article>
+              <article><strong>门窗状态</strong><span class="status safe">正常</span><em>门锁和窗户开合正常</em></article>
+            </section>
+
+            <article class="ai-preview-card">
+              <div>
+                <p class="label">概念效果</p>
+                <h3 id="detailRenderTitle">暂未生成概念效果</h3>
+                <p class="muted">完成软装摆放后，可生成温暖现代的小户型概念预览。</p>
+              </div>
+              <span class="render-thumb"></span>
+            </article>
+
+            <div class="detail-actions">
+              <button class="primary-button" type="button" id="detailStartFurnish">开始模拟软装</button>
+              <button class="secondary-button" type="button" id="detailMapButton">在地图中查看</button>
+              <button class="secondary-button" type="button" data-target="library">返回房型库</button>
+            </div>
+          </section>
+
+
+          <section class="content screen" id="compareScreen" aria-label="对比">
+            <article class="decision-card">
+              <p class="label">推荐</p>
+              <h2>绿荫路 12 号更稳</h2>
+              <p class="muted">租金略高，但通勤短、风险少，家具完整度更高。</p>
+            </article>
+
+            <div class="compare-stack">
+              <article class="compare-row selected">
+                <div>
+                  <h3>绿荫路 12 号</h3>
+                  <p>¥4,800/月 · 风险 2</p>
+                </div>
+                <span>最稳</span>
+              </article>
+              <article class="compare-row">
+                <div>
+                  <h3>河岸公寓</h3>
+                  <p>¥4,350/月 · 风险 5</p>
+                </div>
+                <span>省钱</span>
+              </article>
+              <article class="compare-row danger">
+                <div>
+                  <h3>海棠里 3 号</h3>
+                  <p>¥4,600/月 · 风险 7</p>
+                </div>
+                <span>谨慎</span>
+              </article>
+            </div>
+          </section>
+
+
+          <section class="content screen" id="furnishScreen" aria-label="软装模拟器">
+            <article class="furnish-mobile-frame">
+              <iframe title="Roomark 软装模拟器" src="about:blank" data-src="../web-furnish/index.html"></iframe>
+            </article>
+          </section>
+
+          <nav class="tabbar" aria-label="底部导航">
+            <button class="tab active" type="button" data-target="home" aria-label="首页">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8" /><path d="M5 10v10h14V10" /></svg>
+              <span>首页</span>
+            </button>
+            <button class="tab" type="button" data-target="scan" aria-label="扫描">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7V4h3" /><path d="M17 4h3v3" /><path d="M20 17v3h-3" /><path d="M7 20H4v-3" /><path d="M7 12h10" /></svg>
+              <span>扫描</span>
+            </button>
+            <button class="tab" type="button" data-target="map" aria-label="地图">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3Z" /><path d="M9 3v15M15 6v15" /></svg>
+              <span>地图</span>
+            </button>
+            <button class="tab" type="button" data-target="library" aria-label="房型库">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5" /><path d="M4 19h16" /><path d="m7 16 4-5 4 3 3-7" /></svg>
+              <span>房型库</span>
+            </button>
+          </nav>
+        </div>
+        <div class="motion-hint" id="motionHint" aria-hidden="true">
+          <span></span>
+        </div>
+      </section>
+    </main>
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden>已保存到房型库</div>
+    <script src="./vendor/three/three.min.js?v=20260613"></script>
+    <script src="./vendor/three/OrbitControls.js?v=20260613"></script>
+    <script src="./house-models/property-data.js?v=20260615"></script>
+    <script src="./house-models/model-library.js?v=20260615"></script>
+    <script src="./house-models/house-viewer.js?v=20260613-4"></script>
+    <script src="./plan-to-3d.js?v=20260616"></script>
+    <script src="./script.js?v=20260615"></script>
+    <script src="./map.js?v=20260615"></script>
+    <script>
+      if (typeof window.RoomarkShowScreen !== "function") {
+        const fallbackTitles = {
+          home: "今天看哪套？",
+          scan: "扫描房间",
+          library: "房型库",
+          detail: "房源详情",
+          furnish: "软装模拟器"
+        };
+        const fallbackScreens = {
+          home: document.getElementById("homeScreen"),
+          scan: document.getElementById("scanScreen"),
+          library: document.getElementById("libraryScreen"),
+          detail: document.getElementById("detailScreen"),
+          furnish: document.getElementById("furnishScreen")
+        };
+        const fallbackToast = document.getElementById("toast");
+        const fallbackProfile = {
+          score: "86",
+          rent: "¥4,800",
+          deposit: "¥4,800",
+          commute: "18 分钟",
+          cost: "约 ¥14,400",
+          riskTitle: "2 项待确认 · 1 项高风险",
+          riskText: "卫生间墙角有潮痕，签约前建议让房东确认维修记录。",
+          evidence: "已记录 6 项",
+          render: "已保存 1 张软装效果图"
+        };
+        let fallbackRoomTitle = "晨光 L 型两居";
+
+        function fallbackShowScreen(target) {
+          Object.entries(fallbackScreens).forEach(([key, screen]) => {
+            screen?.classList.toggle("active", key === target);
+          });
+          document.querySelectorAll(".tab").forEach((tab) => {
+            tab.classList.toggle("active", tab.dataset.target === target);
+          });
+          document.getElementById("screenTitle").textContent = fallbackTitles[target] || fallbackTitles.home;
+        }
+
+        function fallbackShowToast(message) {
+          fallbackToast.textContent = message;
+          fallbackToast.hidden = false;
+          window.clearTimeout(fallbackShowToast.timer);
+          fallbackShowToast.timer = window.setTimeout(() => {
+            fallbackToast.hidden = true;
+          }, 1600);
+        }
+
+        window.RoomarkShowScreen = fallbackShowScreen;
+        window.RoomarkEnterFurnishMode = (roomTitle = fallbackRoomTitle) => {
+          fallbackShowScreen("furnish");
+          fallbackShowToast(`${roomTitle} · 已进入自由布置`);
+        };
+        window.RoomarkOpenRoomDetail = (model = {}) => {
+          fallbackRoomTitle = model.title || "晨光 L 型两居";
+          document.getElementById("detailTitle").textContent = fallbackRoomTitle;
+          document.getElementById("detailSubtitle").textContent = [model.area, model.rooms, model.style].filter(Boolean).join(" · ") || "已扫描房型 · 可进入 3D 软装模拟";
+          document.getElementById("detailScore").textContent = fallbackProfile.score;
+          document.getElementById("detailRent").textContent = fallbackProfile.rent;
+          document.getElementById("detailDeposit").textContent = fallbackProfile.deposit;
+          document.getElementById("detailCommute").textContent = fallbackProfile.commute;
+          document.getElementById("detailCost").textContent = fallbackProfile.cost;
+          document.getElementById("detailRiskTitle").textContent = fallbackProfile.riskTitle;
+          document.getElementById("detailRiskText").textContent = fallbackProfile.riskText;
+          document.getElementById("detailEvidenceCount").textContent = fallbackProfile.evidence;
+          document.getElementById("detailRenderTitle").textContent = fallbackProfile.render;
+          fallbackShowScreen("detail");
+          fallbackShowToast(`${fallbackRoomTitle} · 已打开房源详情`);
+        };
+        document.querySelectorAll("[data-target]").forEach((button) => {
+          button.addEventListener("click", () => {
+            if (fallbackScreens[button.dataset.target]) fallbackShowScreen(button.dataset.target);
+          });
+        });
+        document.getElementById("detailStartFurnish")?.addEventListener("click", () => {
+          window.RoomarkEnterFurnishMode(fallbackRoomTitle);
+        });
+      }
+    </script>
+  </body>
+</html>

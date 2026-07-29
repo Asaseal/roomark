@@ -1,0 +1,23 @@
+name: roomark
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: services/backend/Dockerfile
+    environment:
+      ROOMARK_API_KEY: ${ROOMARK_API_KEY:-}
+      ROOMARK_CORS_ORIGINS: ${ROOMARK_CORS_ORIGINS:-}
+      ROOMARK_DATABASE_URL: sqlite:///data/roomark.db?mode=rwc
+      ROOMARK_GRPC_ADDR: 0.0.0.0:50051
+      ROOMARK_HTTP_ADDR: 0.0.0.0:8080
+      RUST_LOG: ${RUST_LOG:-roomark_backend=info,tower_http=info}
+    ports:
+      - "127.0.0.1:${ROOMARK_HTTP_PORT:-8080}:8080"
+      - "127.0.0.1:${ROOMARK_GRPC_PORT:-50051}:50051"
+    restart: unless-stopped
+    volumes:
+      - roomark-data:/data
+
+volumes:
+  roomark-data:

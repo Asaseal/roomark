@@ -1,0 +1,140 @@
+syntax = "proto3";
+
+package roomark.v1;
+
+service RoomarkService {
+  rpc CreateScanSession(CreateScanSessionRequest) returns (CreateScanSessionResponse);
+  rpc CompleteRoomPlanScan(CompleteRoomPlanScanRequest) returns (CompleteRoomPlanScanResponse);
+  rpc ListRoomMeshes(ListRoomMeshesRequest) returns (ListRoomMeshesResponse);
+  rpc GetIndoorTour(GetIndoorTourRequest) returns (GetIndoorTourResponse);
+  rpc ReplaceIndoorTour(ReplaceIndoorTourRequest) returns (GetIndoorTourResponse);
+  rpc StartFurnishingSimulation(StartFurnishingSimulationRequest) returns (StartFurnishingSimulationResponse);
+  rpc GetFurnishingProject(GetFurnishingProjectRequest) returns (GetFurnishingProjectResponse);
+  rpc ReplaceFurniturePlacements(ReplaceFurniturePlacementsRequest) returns (GetFurnishingProjectResponse);
+}
+
+message CreateScanSessionRequest {
+  string property_id = 1;
+  string source = 2;
+  float ceiling_height_meters = 3;
+}
+
+message CreateScanSessionResponse {
+  string scan_session_id = 1;
+  string capture_engine = 2;
+  string upload_hint = 3;
+  string status = 4;
+  string created_at = 5;
+}
+
+message CompleteRoomPlanScanRequest {
+  string scan_session_id = 1;
+  float width_meters = 2;
+  float depth_meters = 3;
+  float height_meters = 4;
+  string source_asset_name = 5;
+  string idempotency_key = 6;
+  string title = 7;
+  string preview_model_url = 8;
+}
+
+message CompleteRoomPlanScanResponse {
+  RoomMesh mesh = 1;
+}
+
+message ListRoomMeshesRequest {
+  string property_id = 1;
+}
+
+message ListRoomMeshesResponse {
+  repeated RoomMesh meshes = 1;
+}
+
+message StartFurnishingSimulationRequest {
+  string mesh_id = 1;
+  string style = 2;
+  repeated FurniturePlacement placements = 3;
+}
+
+message StartFurnishingSimulationResponse {
+  string simulation_id = 1;
+  string status = 2;
+  repeated FurnitureSuggestion suggestions = 3;
+  FurnishingProject project = 4;
+}
+
+message GetIndoorTourRequest {
+  string mesh_id = 1;
+}
+
+message GetIndoorTourResponse {
+  string tour_id = 1;
+  string mesh_id = 2;
+  repeated IndoorViewpoint viewpoints = 3;
+}
+
+message ReplaceIndoorTourRequest {
+  string mesh_id = 1;
+  repeated IndoorViewpoint viewpoints = 2;
+}
+
+message RoomMesh {
+  string id = 1;
+  string property_id = 2;
+  string title = 3;
+  float width_meters = 4;
+  float depth_meters = 5;
+  float height_meters = 6;
+  string source_asset_name = 7;
+  string preview_model_url = 8;
+  string capture_engine = 9;
+  string scan_session_id = 10;
+  string created_at = 11;
+}
+
+message FurnitureSuggestion {
+  string name = 1;
+  string placement = 2;
+  string fit = 3;
+}
+
+message IndoorViewpoint {
+  string id = 1;
+  string label = 2;
+  float yaw_degrees = 3;
+  float x_meters = 4;
+  float y_meters = 5;
+}
+
+message FurniturePlacement {
+  string furniture_type = 1;
+  string placement = 2;
+  float x_meters = 3;
+  float y_meters = 4;
+  string id = 5;
+  float rotation_degrees = 6;
+  int32 position = 7;
+}
+
+message FurnishingProject {
+  string id = 1;
+  string mesh_id = 2;
+  string style = 3;
+  string status = 4;
+  repeated FurniturePlacement placements = 5;
+  string created_at = 6;
+  string updated_at = 7;
+}
+
+message GetFurnishingProjectRequest {
+  string project_id = 1;
+}
+
+message GetFurnishingProjectResponse {
+  FurnishingProject project = 1;
+}
+
+message ReplaceFurniturePlacementsRequest {
+  string project_id = 1;
+  repeated FurniturePlacement placements = 2;
+}

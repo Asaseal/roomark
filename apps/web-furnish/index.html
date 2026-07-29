@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Roomark 软装模拟器</title>
+    <link rel="stylesheet" href="./styles.css?v=20260613-3" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="library-panel" aria-label="Roomark 房型库">
+        <div class="brand-row">
+          <span class="brand-mark">R</span>
+          <div>
+            <p class="eyebrow">Roomark</p>
+            <h1>软装模拟器</h1>
+          </div>
+        </div>
+
+        <section class="room-list" id="roomList" aria-label="房型库"></section>
+
+        <section class="tips-card">
+          <h3>本地工作流</h3>
+          <p>从房型库进入三维房间，调取 GLB 家具库摆放家具，固定或移除后自动保存，并生成一张明确标注的 Mock 效果图。</p>
+        </section>
+      </aside>
+
+      <section class="studio-panel" aria-label="Roomark 软装编辑器">
+        <header class="studio-topbar">
+          <button class="ghost-button" id="backButton" type="button">返回房型库</button>
+          <div>
+            <p class="eyebrow">Roomark</p>
+            <h2 id="studioRoomTitle">样例房型 · 3m × 3m × 3m</h2>
+          </div>
+          <div class="topbar-actions">
+            <button class="render-button" id="renderButton" type="button">生成 Mock 效果图</button>
+            <button class="ghost-button" id="resetButton" type="button">重置视角</button>
+          </div>
+        </header>
+
+        <div class="studio-body">
+          <nav class="furniture-drawer" aria-label="家具目录">
+            <div class="drawer-head">
+              <span></span>
+              <h3>家具目录</h3>
+              <p>点击家具后会生成可拖拽模型。没有本地家具文件时，系统会使用稳定的占位模型保持编辑流程可用。</p>
+            </div>
+            <div class="asset-list" id="assetList"></div>
+          </nav>
+
+          <div class="viewport-card">
+            <div id="viewport"></div>
+            <div class="scene-loading" id="sceneLoading">
+              <div class="loading-card">
+                <strong>正在搭建三维房间</strong>
+                <span>空白房间模型加载中</span>
+              </div>
+            </div>
+            <div class="view-joystick" id="viewJoystick" aria-label="房间视角摇杆">
+              <button type="button" data-camera-move="forward">前</button>
+              <button type="button" data-camera-move="left">左</button>
+              <span aria-hidden="true"></span>
+              <button type="button" data-camera-move="right">右</button>
+              <button type="button" data-camera-move="back">后</button>
+            </div>
+            <div class="scene-toast" id="sceneToast">选择家具进入房间摆放</div>
+            <div class="floating-actions" id="floatingActions">
+              <button id="lockButton" type="button">锁定位置</button>
+              <button class="danger" id="deleteButton" type="button">移除家具</button>
+            </div>
+          </div>
+        </div>
+
+        <footer class="studio-footer">
+          <span id="statusText">待添加家具</span>
+          <span id="saveText">本地自动保存已开启</span>
+        </footer>
+      </section>
+
+      <section class="render-modal" id="renderModal" aria-label="Mock 效果图预览" hidden>
+        <article class="render-card">
+          <div class="render-progress" id="renderProgress">
+            <strong>正在分析家具布局</strong>
+            <span>下一步：生成光照与材质</span>
+          </div>
+          <div class="render-result" id="renderResult" hidden>
+            <div class="render-image" aria-hidden="true">
+              <span class="render-window"></span>
+              <span class="render-sofa"></span>
+              <span class="render-bed"></span>
+              <span class="render-table"></span>
+            </div>
+            <div>
+              <p class="eyebrow">Mock 效果图</p>
+              <h3>温暖现代租房小空间</h3>
+              <p id="renderSummary">基于当前房间尺寸和家具摆放生成预览。</p>
+            </div>
+          </div>
+          <div class="render-actions">
+            <button class="ghost-button" id="closeRenderButton" type="button">关闭</button>
+            <button class="render-button" id="saveRenderButton" type="button">保存到房型库</button>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <script src="./vendor/three/three.min.js?v=20260613"></script>
+    <script src="./vendor/three/OrbitControls.js?v=20260613"></script>
+    <script src="./scene.js?v=20260615-map"></script>
+  </body>
+</html>

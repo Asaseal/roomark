@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "name": "Roomark",
+    "slug": "roomark-mobile",
+    "version": "0.1.0",
+    "platforms": [
+      "android"
+    ],
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "assets/**/*"
+    ],
+    "android": {
+      "package": "com.roomark.app"
+    }
+  }
+}

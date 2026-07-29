@@ -1,0 +1,10 @@
+.git
+.github
+.artwork-source
+.artwork-review
+apps
+docs
+release
+services/backend/target
+node_modules
+*.log

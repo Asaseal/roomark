@@ -1,0 +1,45 @@
+name: Product improvement
+description: Suggest an improvement within Roomark's current product scope
+title: "[Improvement]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem
+      description: Describe the current workflow problem rather than only the proposed solution.
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Product surface
+      options:
+        - Android application
+        - Web preview
+        - Web furnishing
+        - Product website
+        - Backend
+        - Build or release tooling
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed improvement
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: true
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope confirmation
+      options:
+        - label: This request improves an existing Roomark capability and does not require accounts, cloud synchronization, social features, contract analysis, automatic 3D scanning, or real image generation.
+          required: true

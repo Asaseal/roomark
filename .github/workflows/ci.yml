@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  public-content:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify repository and browser surfaces
+        run: |
+          node --test scripts/tests/*.test.cjs
+          node --test apps/web-preview/tests/*.test.cjs
+          node --test apps/web-furnish/tests/*.test.cjs
+          node --test apps/website/tests/*.test.cjs
+          node --check apps/web-preview/script.js
+          node --check apps/web-preview/map.js
+          node --check apps/web-preview/plan-to-3d.js
+          node --check apps/web-preview/roomark-3d.js
+          node --check apps/web-furnish/scene.js
+          node --check apps/website/script.js
+          node --check apps/website/server.cjs
+
+  mobile:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
+      - run: npm ci
+      - run: npm run verify
+
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy,rustfmt
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: services/backend
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets --locked -- -D warnings
+      - run: cargo test --locked
+
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build --file services/backend/Dockerfile --tag roomark-backend:ci .
