@@ -51,7 +51,7 @@ jobs:
           cp apps/website/script.js _site/
           cp apps/website/favicon.svg _site/
           cp docs/images/product/*.jpg _site/assets/product/
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: _site
       - name: Deploy to GitHub Pages
