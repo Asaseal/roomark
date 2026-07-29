@@ -30,6 +30,7 @@ const furnitureModelModules: Record<string, number> = {
   "D-glb/bed.glb": require("../assets/D-glb/bed.glb"),
   "D-glb/storage.glb": require("../assets/D-glb/storage.glb")
 };
+const furnishRuntimeModule = require("../assets/vendor/furnish-runtime.js.txt");
 
 const GLB_DATA_URI_PREFIX = "data:model/gltf-binary;base64,";
 
@@ -52,10 +53,10 @@ function FurnishWebViewInner(
   const [loadError, setLoadError] = useState<string | null>(null);
   const [assetResolutionReady, setAssetResolutionReady] = useState(false);
   const [resolvedModelUris, setResolvedModelUris] = useState<Record<string, string>>({});
+  const [sceneHtml, setSceneHtml] = useState<string | null>(null);
   const [webViewKey, setWebViewKey] = useState(0);
   const loadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initSentRef = useRef(false);
-  const sceneHtml = useMemo(() => getFurnishSceneHtml(), []);
 
   const resolvedAssets = useMemo(
     () =>
@@ -106,12 +107,49 @@ function FurnishWebViewInner(
     initSentRef.current = false;
     clearLoadTimeout();
     loadTimeoutRef.current = setTimeout(() => {
-      setLoadError("3D 场景加载较慢，请检查网络或点击重试");
+      setLoadError("3D 场景加载较慢，请点击重试");
       onSceneReadyChanged(false);
       onSceneError("3D 场景加载较慢，可点击重试");
     }, 12000);
 
     return clearLoadTimeout;
+  }, [clearLoadTimeout, onSceneError, onSceneReadyChanged, webViewKey]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadFurnishRuntime() {
+      try {
+        setSceneHtml(null);
+        const [runtimeAsset] = await Asset.loadAsync(furnishRuntimeModule);
+        const readableRuntimeUri = runtimeAsset.localUri ?? runtimeAsset.uri;
+
+        if (!readableRuntimeUri) {
+          throw new Error("Bundled 3D runtime URI is unavailable");
+        }
+
+        const runtimeSource = await FileSystem.readAsStringAsync(readableRuntimeUri);
+
+        if (mounted) {
+          setSceneHtml(getFurnishSceneHtml(runtimeSource));
+        }
+      } catch {
+        if (mounted) {
+          const message = "本地 3D 运行时读取失败，请点击重试";
+          clearLoadTimeout();
+          setLoadError(message);
+          setSceneReady(false);
+          onSceneReadyChanged(false);
+          onSceneError(message);
+        }
+      }
+    }
+
+    void loadFurnishRuntime();
+
+    return () => {
+      mounted = false;
+    };
   }, [clearLoadTimeout, onSceneError, onSceneReadyChanged, webViewKey]);
 
   useEffect(() => {
@@ -174,6 +212,7 @@ function FurnishWebViewInner(
     clearLoadTimeout();
     setLoadError(null);
     setSceneReady(false);
+    setSceneHtml(null);
     onSceneReadyChanged(false);
     setWebViewKey((value) => value + 1);
   };
@@ -219,31 +258,33 @@ function FurnishWebViewInner(
 
   return (
     <View style={styles.container}>
-      <WebView
-        key={webViewKey}
-        ref={webViewRef}
-        originWhitelist={["*"]}
-        source={{ html: sceneHtml, baseUrl: "" }}
-        javaScriptEnabled
-        domStorageEnabled
-        allowFileAccess
-        allowUniversalAccessFromFileURLs
-        mixedContentMode="always"
-        onMessage={handleMessage}
-        onError={() => {
-          setLoadError("WebView 加载失败，请点击重试");
-          setSceneReady(false);
-          onSceneReadyChanged(false);
-          onSceneError("WebView 加载失败，请点击重试");
-        }}
-        style={styles.webView}
-      />
+      {sceneHtml ? (
+        <WebView
+          key={webViewKey}
+          ref={webViewRef}
+          originWhitelist={["*"]}
+          source={{ html: sceneHtml, baseUrl: "" }}
+          javaScriptEnabled
+          domStorageEnabled
+          allowFileAccess
+          allowUniversalAccessFromFileURLs
+          mixedContentMode="always"
+          onMessage={handleMessage}
+          onError={() => {
+            setLoadError("WebView 加载失败，请点击重试");
+            setSceneReady(false);
+            onSceneReadyChanged(false);
+            onSceneError("WebView 加载失败，请点击重试");
+          }}
+          style={styles.webView}
+        />
+      ) : null}
       {!sceneReady ? (
         <View style={styles.loadingOverlay}>
           <View style={styles.loadingCard}>
             {loadError ? null : <ActivityIndicator color="#2f2a22" />}
             <Text style={styles.loadingTitle}>{loadError ? "3D 场景暂未打开" : "正在搭建 3D 房间"}</Text>
-            <Text style={styles.loadingText}>{loadError ?? "首次加载 Three.js 可能需要几秒钟"}</Text>
+            <Text style={styles.loadingText}>{loadError ?? "正在从应用内加载 3D 运行时"}</Text>
             {loadError ? (
               <View style={styles.errorActions}>
                 <TouchableOpacity accessibilityRole="button" style={styles.retryButton} activeOpacity={0.86} onPress={retryScene}>

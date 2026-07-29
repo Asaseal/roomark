@@ -67,7 +67,9 @@ cd apps/mobile/android
 - 房源、扫描和比较状态：`roomark:mobile:product-state:v1`
 - 软装项目：`roomark:furnish-project:<roomId>`
 
-核心流程不依赖账号、云同步或后端连接。GLB 无法读取时，3D 场景使用占位模型并提供重试，不删除已保存布局。
+核心流程不依赖账号、云同步或后端连接。Three.js、OrbitControls、GLTFLoader 与 GLB 模型均随应用打包，首次打开 3D 软装不依赖 CDN；GLB 无法读取时，场景使用占位模型并提供重试，不删除已保存布局。
+
+更新内置 3D 运行时后，运行 `npm.cmd run build:furnish-runtime`，并同时提交 `assets/vendor/furnish-runtime.js.txt` 与 `assets/vendor/three-LICENSE.txt`。生成脚本固定使用 `package.json` 中的 Three.js 版本，确保本地构建和 CI 可复现。
 
 ## 当前边界
 

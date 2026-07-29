@@ -1,6 +1,6 @@
 # Roomark Android 验证记录
 
-验证日期：2026-07-20
+验证日期：2026-07-20（持续更新至 2026-07-29）
 
 ## 构建身份
 
@@ -27,7 +27,7 @@
 
 ## 自动化验证
 
-- Mobile 合约测试：33 passed，0 failed。
+- Mobile 合约测试：42 passed，0 failed。
 - Android release 交付契约：12 passed，0 failed。
 - TypeScript：`tsc --noEmit` passed。
 - Expo 公共配置：passed。
@@ -48,6 +48,13 @@
 - 读取恢复和保存失败提示具备 Android 无障碍语义、状态播报和禁用状态。
 
 这些增量仍属于现有本地保存与异常恢复能力，不增加新的产品功能。
+
+2026-07-29 继续消除现场首次使用的网络依赖：
+
+- Three.js r132、OrbitControls 和 GLTFLoader 从远程 CDN 改为应用内静态资产。
+- WebView 打开前通过 Expo Asset 和 FileSystem 读取本地运行时；读取失败时保留重试与返回入口。
+- 生成脚本、固定依赖版本、MIT 许可证副本和自动化契约共同保证运行时可复现且不会退回 CDN。
+- 自动化契约、TypeScript 与 Android 原生构建已覆盖该增量；目标实体手机的首次启动飞行模式复测仍保留为发布门槛。
 
 ## 生产发布整改
 

@@ -6,6 +6,7 @@
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
+    "build:furnish-runtime": "node scripts/build-furnish-runtime.cjs",
     "web": "expo start --web",
     "test": "node --test tests/*.test.cjs",
     "typecheck": "tsc --noEmit",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "@types/react": "~18.2.79",
+    "three": "0.132.2",
     "typescript": "~5.3.3"
   }
 }

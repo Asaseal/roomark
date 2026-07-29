@@ -92,3 +92,46 @@ test("studio owns Android back and stays open when flush fails", () => {
   assert.match(screen, /if \(persisted\) \{\s*onBack\(\)/);
   assert.doesNotMatch(app, /if \(studioRoom\) \{\s*setStudioRoom\(null\)/);
 });
+
+test("3D furnishing runtime is bundled for first-run offline use", () => {
+  const bridge = read(path.join("components", "FurnishWebView.tsx"));
+  const scene = read(path.join("webview", "furnish-scene", "sceneHtml.ts"));
+  const metro = read("metro.config.js");
+  const packageJson = JSON.parse(read("package.json"));
+  const generatorPath = path.join(mobileRoot, "scripts", "build-furnish-runtime.cjs");
+  const runtimePath = path.join(
+    mobileRoot,
+    "assets",
+    "vendor",
+    "furnish-runtime.js.txt",
+  );
+  const licensePath = path.join(
+    mobileRoot,
+    "assets",
+    "vendor",
+    "three-LICENSE.txt",
+  );
+
+  assert.doesNotMatch(scene, /https?:\/\//);
+  assert.doesNotMatch(scene, /<script\s+src=/);
+  assert.match(scene, /getFurnishSceneHtml\(runtimeSource: string\)/);
+  assert.match(scene, /escapeInlineScript\(runtimeSource\)/);
+  assert.match(bridge, /furnish-runtime\.js\.txt/);
+  assert.match(bridge, /Asset\.loadAsync\(furnishRuntimeModule\)/);
+  assert.match(bridge, /FileSystem\.readAsStringAsync\(readableRuntimeUri\)/);
+  assert.match(bridge, /getFurnishSceneHtml\(runtimeSource\)/);
+  assert.match(metro, /"txt"/);
+  assert.equal(packageJson.devDependencies.three, "0.132.2");
+  assert.match(packageJson.scripts["build:furnish-runtime"], /build-furnish-runtime\.cjs/);
+  assert.equal(fs.existsSync(generatorPath), true);
+  assert.equal(fs.existsSync(runtimePath), true);
+  assert.equal(fs.existsSync(licensePath), true);
+
+  const runtime = fs.readFileSync(runtimePath, "utf8");
+  const license = fs.readFileSync(licensePath, "utf8");
+  assert.ok(runtime.length > 500_000, "bundled Three.js runtime is unexpectedly small");
+  assert.match(runtime, /OrbitControls/);
+  assert.match(runtime, /GLTFLoader/);
+  assert.doesNotMatch(runtime, /https?:\/\/cdn\.jsdelivr\.net/);
+  assert.match(license, /MIT License/);
+});

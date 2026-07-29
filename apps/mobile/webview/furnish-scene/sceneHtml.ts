@@ -1,4 +1,10 @@
-export function getFurnishSceneHtml() {
+function escapeInlineScript(source: string) {
+  return source.replace(/<\/script/gi, "<\\/script");
+}
+
+export function getFurnishSceneHtml(runtimeSource: string) {
+  const inlineRuntime = escapeInlineScript(runtimeSource);
+
   return String.raw`<!doctype html>
 <html lang="zh-CN">
   <head>
@@ -137,9 +143,7 @@ export function getFurnishSceneHtml() {
       </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
+    <script>${inlineRuntime}</script>
     <script>
       const app = document.getElementById("app");
       const loading = document.getElementById("loading");
