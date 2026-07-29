@@ -112,3 +112,15 @@ test("self-hosted backend delivery files are present", () => {
     assert.equal(fs.existsSync(path.join(root, relativePath)), true, relativePath);
   }
 });
+
+test("GitHub workflows use Node 24 compatible action runtimes", () => {
+  for (const relativePath of [
+    ".github/workflows/ci.yml",
+    ".github/workflows/pages.yml",
+  ]) {
+    const workflow = fs.readFileSync(path.join(root, relativePath), "utf8");
+    assert.doesNotMatch(workflow, /actions\/checkout@v[1-6]\b/);
+    assert.doesNotMatch(workflow, /actions\/setup-node@v[1-6]\b/);
+    assert.match(workflow, /actions\/checkout@v7/);
+  }
+});

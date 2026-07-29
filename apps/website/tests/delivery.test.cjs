@@ -21,8 +21,10 @@ test("local website server exposes canonical product images safely", () => {
 
 test("GitHub Pages workflow verifies and deploys the static website", () => {
   assert.match(workflow, /node --test apps\/website\/tests\/\*\.test\.cjs/);
-  assert.match(workflow, /configure-pages@v5/);
-  assert.match(workflow, /upload-pages-artifact@v3/);
-  assert.match(workflow, /deploy-pages@v4/);
+  assert.match(workflow, /actions\/checkout@v7/);
+  assert.match(workflow, /actions\/setup-node@v7/);
+  assert.match(workflow, /configure-pages@v6/);
+  assert.match(workflow, /upload-pages-artifact@v5/);
+  assert.match(workflow, /deploy-pages@v5/);
   assert.match(workflow, /docs\/images\/product\/\*\.jpg/);
 });
