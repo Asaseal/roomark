@@ -14,6 +14,11 @@ node_modules/
 # Generated release bundles
 release/
 
+# Android release signing credentials
+credentials.json
+*.jks
+*.keystore
+
 # Original furniture source archive; the mobile app uses optimized GLB files beside it
 apps/mobile/assets/D-glb/O5618-家具/
 

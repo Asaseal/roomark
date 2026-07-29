@@ -1,7 +1,7 @@
 param(
   [switch]$Full,
   [switch]$Live,
-  [switch]$RequireApk
+  [switch]$RequireAab
 )
 
 $ErrorActionPreference = "Stop"
@@ -34,6 +34,60 @@ function Test-ServiceUrl {
     $failures.Add("Unexpected HTTP status for $Url`: $($response.StatusCode)")
   } catch {
     $failures.Add("Unavailable URL: $Url")
+  }
+}
+
+function Test-AndroidBundle {
+  param([string]$RelativePath)
+
+  $fullPath = Join-Path $projectRoot $RelativePath
+  if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
+    Write-Host "[FAIL] file $RelativePath"
+    $failures.Add("Missing file: $RelativePath")
+    return
+  }
+
+  Add-Type -AssemblyName System.IO.Compression.FileSystem
+  $archive = [System.IO.Compression.ZipFile]::OpenRead($fullPath)
+  try {
+    $entryNames = $archive.Entries | ForEach-Object { $_.FullName }
+    $hasSignatureFile = $entryNames | Where-Object {
+      $_.StartsWith("META-INF/", [System.StringComparison]::OrdinalIgnoreCase) -and
+      $_.EndsWith(".SF", [System.StringComparison]::OrdinalIgnoreCase)
+    }
+    $hasSignatureBlock = $entryNames | Where-Object {
+      $_.StartsWith("META-INF/", [System.StringComparison]::OrdinalIgnoreCase) -and
+      ($_.EndsWith(".RSA", [System.StringComparison]::OrdinalIgnoreCase) -or
+        $_.EndsWith(".DSA", [System.StringComparison]::OrdinalIgnoreCase) -or
+        $_.EndsWith(".EC", [System.StringComparison]::OrdinalIgnoreCase))
+    }
+  } finally {
+    $archive.Dispose()
+  }
+
+  if (-not $hasSignatureFile -or -not $hasSignatureBlock) {
+    Write-Host "[FAIL] signed Android App Bundle $RelativePath"
+    $failures.Add("Android App Bundle is not signed: $RelativePath")
+    return
+  }
+
+  $jarsignerPath = "jarsigner.exe"
+  if (-not [string]::IsNullOrWhiteSpace($env:JAVA_HOME)) {
+    $javaHomeJarsigner = Join-Path $env:JAVA_HOME "bin\jarsigner.exe"
+    if (Test-Path -LiteralPath $javaHomeJarsigner -PathType Leaf) {
+      $jarsignerPath = $javaHomeJarsigner
+    }
+  }
+
+  try {
+    & $jarsignerPath -verify $fullPath | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+      throw "jarsigner exited with code $LASTEXITCODE"
+    }
+    Write-Host "[PASS] signed Android App Bundle $RelativePath"
+  } catch {
+    Write-Host "[FAIL] signed Android App Bundle $RelativePath"
+    $failures.Add("Android App Bundle signature verification failed: $RelativePath")
   }
 }
 
@@ -94,8 +148,8 @@ foreach ($file in $requiredFiles) {
   Test-RequiredFile -RelativePath $file
 }
 
-if ($RequireApk) {
-  Test-RequiredFile -RelativePath "apps\mobile\android\app\build\outputs\apk\release\app-release.apk"
+if ($RequireAab) {
+  Test-AndroidBundle -RelativePath "apps\mobile\android\app\build\outputs\bundle\release\app-release.aab"
 }
 
 if ($Live) {

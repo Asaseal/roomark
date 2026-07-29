@@ -12,7 +12,14 @@
       "assets/**/*"
     ],
     "android": {
-      "package": "com.roomark.app"
+      "package": "com.roomark.app",
+      "versionCode": 1,
+      "allowBackup": false,
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ]
     }
   }
 }

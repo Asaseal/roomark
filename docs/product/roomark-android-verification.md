@@ -7,7 +7,7 @@
 - Android 包名：`com.roomark.app`
 - Expo SDK：51
 - React Native：0.74.5
-- 构建类型：standalone release APK
+- 构建类型：历史内部测试 APK（非商店交付物）
 - APK：`apps\mobile\android\app\build\outputs\apk\release\app-release.apk`
 - APK 大小：64,048,852 bytes
 - APK SHA-256：`7239466be0d57092be356baf2aa277560a34cc44ff5d741d4063ec7eaf9a077e`
@@ -22,7 +22,7 @@
 | Android SDK / adb | PASS | platform-tools 37、Android 34、build-tools 34.0.0 |
 | NDK / CMake | PASS | NDK 26.1.10909125、CMake 3.22.1 |
 | Android 资源契约 | PASS | 启动页引用资源存在，并有自动化测试保护 |
-| Release APK | PASS | `assembleRelease`：430 个任务，构建成功并内置 579 模块与 5 个资源 |
+| 内部测试 APK | PASS | `assembleRelease`：430 个任务，构建成功并内置 579 模块与 5 个资源 |
 | Debug APK 独立运行 | FAIL（已修正） | 安装后出现 “Unable to load script”，证明 debug 包依赖 Metro，不再作为交付物 |
 
 ## 自动化验证
@@ -49,13 +49,25 @@
 
 这些增量仍属于现有本地保存与异常恢复能力，不增加新的产品功能。
 
+## 生产发布整改
+
+2026-07-29 审计发现，历史 `release` 构建类型仍引用仓库内的 debug keystore，因此上文 APK 只能证明独立运行和模拟器流程，不能作为正式签名或商店发布证据。本轮已完成：
+
+- `release` 构建不再使用 debug keystore；本地生产构建缺少上传密钥时会明确失败。
+- EAS `production` 配置使用远程签名凭据、生成 AAB，并自动递增 Android `versionCode`。
+- 主清单移除外部存储读写与悬浮窗权限，只保留网络和振动权限。
+- 禁用 Android 系统备份，避免本地看房记录进入系统云备份。
+- 发布验证和冻结包改为要求已通过 `jarsigner` 校验的 `app-release.aab`，不再把 APK 或未签名文件当作商店交付物。
+
+生产 AAB 尚未生成：上传密钥属于用户私有凭据，仓库不保存；物理真机验收和商店内部测试仍是未完成门槛。
+
 ## Android 14 模拟器运行验收
 
 设备：Android Emulator `Roomark_API_34`，Pixel 5 配置，Android 14 / API 34。
 
 | 流程 | 状态 | 验收证据 |
 |---|---|---|
-| Release APK 安装与冷启动 | PASS | `adb install -r` 成功；`MainActivity` 前台；无 React Native 红屏或崩溃 |
+| 历史内部测试 APK 安装与冷启动 | PASS | `adb install -r` 成功；`MainActivity` 前台；无 React Native 红屏或崩溃 |
 | 房源库 → 对比 | PASS | 对比页展示 3 套房源及租金、入住成本、通勤和风险 |
 | 离线地图 → 房源详情 | PASS | 地图筛选与 3 个房源点可见；选中房源后可进入完整详情 |
 | 模拟扫描 → 保存 → 重启 | PASS | 保存 4.8m × 3.6m × 2.75m 的“现场扫描房型”；强制停止后仍恢复 |
@@ -75,4 +87,4 @@
 
 ## 当前结论
 
-Roomark Android 内测版已完成：具备可独立安装、脱离 Metro 运行的 release APK，既有核心功能已在 Android 14 模拟器完成真实交互、离线与持久化验证。用户于 2026-07-21 确认将实体手机验收延期到正式发布前，因此它不再阻塞本次内测版交付；本记录不宣称已经完成物理真机验收。
+Roomark Android 当前具备可独立安装、脱离 Metro 运行的内部测试 APK，既有核心功能已在 Android 14 模拟器完成交互、离线与持久化验证。该历史 APK 使用调试签名，不能作为正式交付物。生产 AAB、实体手机验收与商店内部测试尚未完成，因此本记录不宣称已达到正式发布成熟度。

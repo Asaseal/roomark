@@ -8,12 +8,22 @@ const script = fs.readFileSync(
   "utf8",
 );
 
-test("release bundle verifies the product and requires a standalone APK", () => {
+test("release bundle verifies the product and requires a store-ready AAB", () => {
   assert.match(script, /product-verify\.ps1/);
   assert.match(script, /-Full/);
-  assert.match(script, /-RequireApk/);
-  assert.match(script, /app-release\.apk/);
-  assert.doesNotMatch(script, /app-debug\.apk/);
+  assert.match(script, /-RequireAab/);
+  assert.match(script, /app-release\.aab/);
+  assert.doesNotMatch(script, /app-(debug|release)\.apk/);
+});
+
+test("release bundle is gated by Android signature verification", () => {
+  const verification = fs.readFileSync(
+    path.resolve(__dirname, "../product-verify.ps1"),
+    "utf8",
+  );
+
+  assert.match(verification, /jarsigner\.exe/);
+  assert.match(verification, /META-INF/);
 });
 
 test("release bundle is built from a clean Git commit", () => {

@@ -41,14 +41,14 @@ npm.cmd run verify
 npm.cmd run android
 ```
 
-构建独立 release APK：
+生成商店生产包有两条路径：
 
 ```powershell
-cd apps/mobile/android
-.\gradlew.bat assembleRelease
+cd apps/mobile
+npx eas-cli build --platform android --profile production
 ```
 
-APK 输出到 `apps/mobile/android/app/build/outputs/apk/release/app-release.apk`。
+EAS 使用远程托管的上传密钥生成签名 AAB。本地构建时，先按[发布指南](docs/product/release-guide.md)配置私有上传密钥，再运行 `apps/mobile/android/gradlew.bat app:bundleRelease`。预览 APK 仅用于模拟器或真机验收，不作为应用商店交付物。
 
 ## 后端自托管
 

@@ -6,7 +6,7 @@ $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $releaseRoot = Join-Path $projectRoot "release"
 $appConfigPath = Join-Path $projectRoot "apps\mobile\app.json"
-$apkPath = Join-Path $projectRoot "apps\mobile\android\app\build\outputs\apk\release\app-release.apk"
+$aabPath = Join-Path $projectRoot "apps\mobile\android\app\build\outputs\bundle\release\app-release.aab"
 
 if ([string]::IsNullOrWhiteSpace($Version)) {
   $appConfig = Get-Content -LiteralPath $appConfigPath -Raw | ConvertFrom-Json
@@ -42,7 +42,7 @@ try {
     throw "The working tree must be clean before creating a release bundle."
   }
 
-  & powershell.exe -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "product-verify.ps1") -Full -RequireApk
+  & powershell.exe -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "product-verify.ps1") -Full -RequireAab
   if ($LASTEXITCODE -ne 0) {
     throw "Product verification failed."
   }
@@ -67,7 +67,7 @@ try {
     throw "Unable to create the source archive."
   }
 
-  Copy-Item -LiteralPath $apkPath -Destination (Join-Path $bundleRoot "Roomark-android-$Version.apk")
+  Copy-Item -LiteralPath $aabPath -Destination (Join-Path $bundleRoot "Roomark-android-$Version.aab")
   @(
     "Roomark $Version",
     "Commit: $commit",

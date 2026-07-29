@@ -28,14 +28,39 @@ npm.cmd run verify
 
 该命令运行 Node 契约测试、TypeScript 类型检查和 Expo 公共配置检查。
 
-## Release APK
+## Android 构建
+
+用于模拟器或真机验收的预览 APK：
+
+```powershell
+cd apps/mobile
+npx eas-cli build --platform android --profile preview
+```
+
+用于应用商店的生产 AAB：
+
+```powershell
+cd apps/mobile
+npx eas-cli build --platform android --profile production
+```
+
+生产配置使用 EAS 远程签名凭据，并自动递增 `versionCode`。如需本地生成生产 AAB，在用户级 `~/.gradle/gradle.properties` 或环境变量中设置：
+
+```properties
+ROOMARK_UPLOAD_STORE_FILE=C:/secure/roomark-upload.jks
+ROOMARK_UPLOAD_STORE_PASSWORD=*****
+ROOMARK_UPLOAD_KEY_ALIAS=roomark-upload
+ROOMARK_UPLOAD_KEY_PASSWORD=*****
+```
+
+然后运行：
 
 ```powershell
 cd apps/mobile/android
-.\gradlew.bat assembleRelease
+.\gradlew.bat app:bundleRelease
 ```
 
-输出：`app/build/outputs/apk/release/app-release.apk`
+输出：`app/build/outputs/bundle/release/app-release.aab`。仓库会忽略 `credentials.json`、JKS 和 keystore 文件；不得提交上传密钥或密码。
 
 ## 本地数据
 

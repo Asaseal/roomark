@@ -3,6 +3,18 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
+def readReleaseSigningValue = { name ->
+    return findProperty(name) ?: System.getenv(name)
+}
+def releaseSigning = [
+    storeFile: readReleaseSigningValue("ROOMARK_UPLOAD_STORE_FILE"),
+    storePassword: readReleaseSigningValue("ROOMARK_UPLOAD_STORE_PASSWORD"),
+    keyAlias: readReleaseSigningValue("ROOMARK_UPLOAD_KEY_ALIAS"),
+    keyPassword: readReleaseSigningValue("ROOMARK_UPLOAD_KEY_PASSWORD")
+]
+def hasReleaseSigningCredentials = releaseSigning.values().every {
+    it != null && !it.toString().trim().isEmpty()
+}
 
 static def versionToNumber(major, minor, patch) {
   return patch * 100 + minor * 10000 + major * 1000000
@@ -124,15 +136,23 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        if (hasReleaseSigningCredentials) {
+            release {
+                storeFile file(releaseSigning.storeFile)
+                storePassword releaseSigning.storePassword
+                keyAlias releaseSigning.keyAlias
+                keyPassword releaseSigning.keyPassword
+            }
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            if (hasReleaseSigningCredentials) {
+                signingConfig signingConfigs.release
+            }
             shrinkResources (findProperty('android.enableShrinkResourcesInReleaseBuilds')?.toBoolean() ?: false)
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
@@ -143,6 +163,28 @@ android {
         jniLibs {
             useLegacyPackaging (findProperty('expo.useLegacyPackaging')?.toBoolean() ?: false)
         }
+    }
+}
+
+def easBuildScript = file("./eas-build.gradle")
+if (easBuildScript.exists()) {
+    apply from: "./eas-build.gradle"
+}
+
+gradle.taskGraph.whenReady { taskGraph ->
+    def requestsReleaseArtifact = taskGraph.allTasks.any { task ->
+        def taskName = task.name.toLowerCase(Locale.ROOT)
+        taskName.contains("release") &&
+            (taskName.startsWith("assemble") || taskName.startsWith("bundle"))
+    }
+
+    if (requestsReleaseArtifact && !hasReleaseSigningCredentials && !easBuildScript.exists()) {
+        throw new GradleException(
+            "Roomark release signing credentials are required. " +
+            "Set ROOMARK_UPLOAD_STORE_FILE, ROOMARK_UPLOAD_STORE_PASSWORD, " +
+            "ROOMARK_UPLOAD_KEY_ALIAS, and ROOMARK_UPLOAD_KEY_PASSWORD in " +
+            "~/.gradle/gradle.properties or the environment."
+        )
     }
 }
 

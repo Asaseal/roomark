@@ -41,14 +41,14 @@ npm.cmd run verify
 npm.cmd run android
 ```
 
-Build a standalone release APK:
+Create a production store build through EAS:
 
 ```powershell
-cd apps/mobile/android
-.\gradlew.bat assembleRelease
+cd apps/mobile
+npx eas-cli build --platform android --profile production
 ```
 
-The APK is written to `apps/mobile/android/app/build/outputs/apk/release/app-release.apk`.
+EAS uses the remotely managed upload key to produce a signed AAB. For a local build, configure a private upload key as described in the [release guide](docs/product/release-guide.md), then run `apps/mobile/android/gradlew.bat app:bundleRelease`. Preview APKs are for emulator or physical-device acceptance only and are not store deliverables.
 
 ## Self-hosted backend
 
