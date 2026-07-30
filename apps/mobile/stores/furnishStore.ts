@@ -4,19 +4,19 @@ import { loadFurnishProject, saveFurnishProject } from "../services/furnishStora
 
 type FurnishState = {
   projectsByRoomId: Record<string, FurnishProject>;
+  loadingRoomIds: Partial<Record<string, true>>;
   recoveryWarningsByRoomId: Partial<Record<string, string>>;
-  activeProject?: FurnishProject;
-  loading: boolean;
   saveError?: string;
   pendingSave: boolean;
   loadProject: (roomMesh: RoomMesh) => Promise<FurnishProject>;
-  setActiveProject: (project: FurnishProject) => void;
+  setProject: (project: FurnishProject) => void;
   saveProject: (project: FurnishProject) => Promise<boolean>;
-  retrySave: () => Promise<boolean>;
+  retrySave: (roomId: string) => Promise<boolean>;
   hasProjectFurniture: (roomId: string) => boolean;
 };
 
 let furnishPersistenceQueue = Promise.resolve();
+const furnishProjectLoads = new Map<string, Promise<FurnishProject>>();
 let pendingSaveCount = 0;
 
 function enqueueFurnishPersistence(operation: () => Promise<void>): Promise<void> {
@@ -27,40 +27,58 @@ function enqueueFurnishPersistence(operation: () => Promise<void>): Promise<void
 
 export const useFurnishStore = create<FurnishState>((set, get) => ({
   projectsByRoomId: {},
+  loadingRoomIds: {},
   recoveryWarningsByRoomId: {},
-  activeProject: undefined,
-  loading: false,
   saveError: undefined,
   pendingSave: false,
-  async loadProject(roomMesh) {
-    set({ loading: true });
-    const result = await loadFurnishProject(roomMesh);
-    const project = result.project;
+  loadProject(roomMesh) {
+    const existingLoad = furnishProjectLoads.get(roomMesh.id);
+    if (existingLoad) {
+      return existingLoad;
+    }
 
-    set((state) => {
-      const nextWarnings = { ...state.recoveryWarningsByRoomId };
-      if (result.warning) {
-        nextWarnings[roomMesh.id] = result.warning;
-      } else {
-        delete nextWarnings[roomMesh.id];
+    set((state) => ({
+      loadingRoomIds: {
+        ...state.loadingRoomIds,
+        [roomMesh.id]: true
       }
+    }));
 
-      return {
-        projectsByRoomId: {
-          ...state.projectsByRoomId,
-          [roomMesh.id]: project
-        },
-        recoveryWarningsByRoomId: nextWarnings,
-        activeProject: project,
-        loading: false
-      };
+    const projectLoad = loadFurnishProject(roomMesh).then((result) => {
+      const project = result.project;
+      set((state) => {
+        const nextWarnings = { ...state.recoveryWarningsByRoomId };
+        if (result.warning) {
+          nextWarnings[roomMesh.id] = result.warning;
+        } else {
+          delete nextWarnings[roomMesh.id];
+        }
+
+        return {
+          projectsByRoomId: {
+            ...state.projectsByRoomId,
+            [roomMesh.id]: project
+          },
+          recoveryWarningsByRoomId: nextWarnings
+        };
+      });
+      return project;
+    }).finally(() => {
+      furnishProjectLoads.delete(roomMesh.id);
+      set((state) => {
+        const nextLoadingRoomIds = { ...state.loadingRoomIds };
+        delete nextLoadingRoomIds[roomMesh.id];
+        return {
+          loadingRoomIds: nextLoadingRoomIds
+        };
+      });
     });
 
-    return project;
+    furnishProjectLoads.set(roomMesh.id, projectLoad);
+    return projectLoad;
   },
-  setActiveProject(project) {
+  setProject(project) {
     set((state) => ({
-      activeProject: project,
       projectsByRoomId: {
         ...state.projectsByRoomId,
         [project.roomId]: project
@@ -75,7 +93,6 @@ export const useFurnishStore = create<FurnishState>((set, get) => ({
     };
 
     set((state) => ({
-      activeProject: nextProject,
       projectsByRoomId: {
         ...state.projectsByRoomId,
         [nextProject.roomId]: nextProject
@@ -103,8 +120,8 @@ export const useFurnishStore = create<FurnishState>((set, get) => ({
       set({ pendingSave: pendingSaveCount > 0 });
     }
   },
-  async retrySave() {
-    const project = get().activeProject;
+  async retrySave(roomId) {
+    const project = get().projectsByRoomId[roomId];
     if (!project) {
       return false;
     }
