@@ -71,7 +71,7 @@ test("furnish writes are serialized and expose retryable failure state", () => {
   assert.match(store, /saveError\?: string/);
   assert.match(store, /pendingSave: boolean/);
   assert.match(store, /saveProject: \(project: FurnishProject\) => Promise<boolean>/);
-  assert.match(store, /retrySave: \(\) => Promise<boolean>/);
+  assert.match(store, /retrySave: \(roomId: string\) => Promise<boolean>/);
   assert.match(store, /furnishPersistenceQueue/);
   assert.match(store, /return true/);
   assert.match(store, /return false/);
