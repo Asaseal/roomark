@@ -44,6 +44,9 @@ export default function FurnishStudioScreen({ roomMesh, onBack, onProjectStatusC
   const loading = useFurnishStore((state) => state.loading);
   const saveError = useFurnishStore((state) => state.saveError);
   const pendingSave = useFurnishStore((state) => state.pendingSave);
+  const recoveryWarning = useFurnishStore(
+    (state) => state.recoveryWarningsByRoomId[roomMesh.id]
+  );
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [renderModalVisible, setRenderModalVisible] = useState(false);
   const [renderLoading, setRenderLoading] = useState(false);
@@ -323,6 +326,15 @@ export default function FurnishStudioScreen({ roomMesh, onBack, onProjectStatusC
         </View>
 
         <View style={styles.statusStack}>
+          {recoveryWarning ? (
+            <View
+              accessibilityLiveRegion="polite"
+              accessibilityRole="alert"
+              style={styles.recoveryNotice}
+            >
+              <Text style={styles.recoveryNoticeText}>{recoveryWarning}</Text>
+            </View>
+          ) : null}
           <View style={styles.statusPill}>
             <Text style={styles.statusText}>{statusText}</Text>
           </View>
@@ -602,6 +614,23 @@ const styles = StyleSheet.create({
     color: "#fff8ef",
     fontSize: 13,
     fontWeight: "800"
+  },
+  recoveryNotice: {
+    backgroundColor: "rgba(255, 244, 220, 0.96)",
+    borderColor: "#d7a85d",
+    borderRadius: 16,
+    borderWidth: 1,
+    marginBottom: 8,
+    maxWidth: "92%",
+    paddingHorizontal: 14,
+    paddingVertical: 10
+  },
+  recoveryNoticeText: {
+    color: "#6f4b18",
+    fontSize: 12,
+    fontWeight: "800",
+    lineHeight: 18,
+    textAlign: "center"
   },
   savePill: {
     alignItems: "center",

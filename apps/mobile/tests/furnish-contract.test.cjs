@@ -20,12 +20,19 @@ test("native and scene bridge handle the complete existing message protocol", ()
   }
 });
 
-test("stored furnishing projects are validated before restore", () => {
+test("stored furnishing projects use recovery results before restore", () => {
   const storage = read(path.join("services", "furnishStorage.ts"));
+  const store = read(path.join("stores", "furnishStore.ts"));
+  const screen = read(path.join("screens", "FurnishStudioScreen.tsx"));
 
-  assert.match(storage, /isFurnishProject/);
-  assert.match(storage, /Array\.isArray\(project\.placedFurniture\)/);
-  assert.match(storage, /createEmptyFurnishProject\(roomMesh\)/);
+  assert.match(storage, /recoverFurnishProject/);
+  assert.match(storage, /Promise<FurnishProjectLoadResult>/);
+  assert.match(store, /recoveryWarningsByRoomId/);
+  assert.match(store, /result\.project/);
+  assert.match(store, /result\.warning/);
+  assert.match(screen, /recoveryWarning/);
+  assert.match(screen, /accessibilityRole="alert"/);
+  assert.match(screen, /accessibilityLiveRegion="polite"/);
 });
 
 test("scene changes debounce saves and flush on exit", () => {
@@ -57,6 +64,7 @@ test("furnish writes are serialized and expose retryable failure state", () => {
   assert.match(store, /furnishPersistenceQueue/);
   assert.match(store, /return true/);
   assert.match(store, /return false/);
+  assert.match(store, /delete nextWarnings\[nextProject\.roomId\]/);
 });
 
 test("studio keeps failed layouts pending and only reports successful saves", () => {
