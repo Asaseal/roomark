@@ -27,7 +27,7 @@
 
 ## 自动化验证
 
-- Mobile 合约测试：63 passed，0 failed。
+- Mobile 合约测试：66 passed，0 failed。
 - Android release 交付契约：12 passed，0 failed。
 - TypeScript：`tsc --noEmit` passed。
 - Expo 公共配置：passed。
@@ -106,6 +106,15 @@
 - 本轮 `app:assembleDebug` 与 `app:createBundleReleaseJsAndAssets` 均为 `BUILD SUCCESSFUL`；Debug APK 为 139,744,953 bytes，Release 离线 bundle 为 1,049,228 bytes。
 - API 34 模拟器实际恢复双人沙发 GLB 和上次布局；保存 Mock 后工作室保持可用，新增家具后 Library 从“Mock 效果图已保存”变为“Mock 效果图未生成”。强制停止并重新启动后仍显示 3 件家具和未生成状态，React Native、AndroidRuntime 与 Chromium 错误日志均为 0。
 
+同日继续消除软装项目加载的并发覆盖：
+
+- Zustand 不再用全局 `activeProject` 和 `loading` 表示多个房间；项目与加载状态按 `roomId` 隔离，工作室只订阅当前房间。
+- 不同房间并发读取时，各自结果只写回对应房间；同一房间的并发读取复用一个 Promise 和一次存储访问。
+- 新增 2 个真实并发行为测试和 1 个工作室选择器契约；Mobile 全套现为 66 passed、0 failed，全仓产品验证通过。
+- 本轮 `app:assembleDebug` 与 `app:createBundleReleaseJsAndAssets` 均为 `BUILD SUCCESSFUL`；Debug APK 为 139,744,953 bytes，Release 离线 bundle 为 1,049,436 bytes。
+- API 34 模拟器保留既有数据安装当前 Debug APK，房源库先显示样例房型 3 件家具且 Mock 未生成；进入工作室后本地 GLB 场景恢复完成，没有因后台项目读取回到永久等待。
+- 工作室新增第 4 件家具并显示“已保存”，返回房源库后显示 4 件且 Mock 仍未生成；强制停止并重新启动后状态不丢失，React Native、AndroidRuntime 与 Chromium 错误日志均为 0。
+
 ## 生产发布整改
 
 2026-07-29 审计发现，历史 `release` 构建类型仍引用仓库内的 debug keystore，因此上文 APK 只能证明独立运行和模拟器流程，不能作为正式签名或商店发布证据。本轮已完成：
@@ -145,6 +154,8 @@
 | WebView 桥接输入边界 | PASS | 自动化拒绝超长、未知、伪造房间、家具丢失和超量消息；异常消息不进入产品状态，WebView 使用最小本地能力 |
 | Mock 保存后继续操作 | PASS | 保存 Mock 后工作室保持可用；未再次加载其他房间项目或进入永久等待 |
 | 布局变化作废旧 Mock | PASS | 保存 Mock 后新增家具，Library 回到“Mock 效果图未生成”；强制停止并重启后仍为 3 件家具和未生成状态 |
+| 并发项目加载隔离 | AUTOMATED PASS | 不同房间乱序完成时各自状态保持隔离；同一房间并发读取只访问一次设备存储 |
+| 软装保存、返回与冷启动 | PASS | 从 3 件恢复布局新增到 4 件并显示“已保存”；返回房源库和强制停止重启后均保留 4 件及 Mock 未生成状态，三类错误日志为 0 |
 
 ## 后续发布门槛：物理真机验收
 
