@@ -68,8 +68,16 @@ test("project status updates do not reload already hydrated furnishing projects"
 test("furnish writes are serialized and expose retryable failure state", () => {
   const store = read(path.join("stores", "furnishStore.ts"));
 
-  assert.match(store, /saveError\?: string/);
-  assert.match(store, /pendingSave: boolean/);
+  assert.match(
+    store,
+    /saveErrorsByRoomId: Partial<Record<string, string>>/
+  );
+  assert.match(
+    store,
+    /pendingSaveRoomIds: Partial<Record<string, true>>/
+  );
+  assert.doesNotMatch(store, /\bsaveError\?: string/);
+  assert.doesNotMatch(store, /\bpendingSave: boolean/);
   assert.match(store, /saveProject: \(project: FurnishProject\) => Promise<boolean>/);
   assert.match(store, /retrySave: \(roomId: string\) => Promise<boolean>/);
   assert.match(store, /furnishPersistenceQueue/);
@@ -175,6 +183,11 @@ test("studio selects furnishing project and loading state by room", () => {
 
   assert.match(screen, /state\.projectsByRoomId\[roomMesh\.id\]/);
   assert.match(screen, /state\.loadingRoomIds\[roomMesh\.id\] \?\? false/);
+  assert.match(screen, /state\.saveErrorsByRoomId\[roomMesh\.id\]/);
+  assert.match(
+    screen,
+    /state\.pendingSaveRoomIds\[roomMesh\.id\] \?\? false/
+  );
   assert.doesNotMatch(screen, /state\.activeProject/);
   assert.doesNotMatch(screen, /state\.loading\)/);
 });

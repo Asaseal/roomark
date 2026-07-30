@@ -49,6 +49,7 @@ function loadStore() {
     }
   }).outputText;
   const pendingLoads = new Map();
+  const pendingSaves = [];
   let loadCount = 0;
   const create = (initializer) => {
     let state;
@@ -81,7 +82,14 @@ function loadStore() {
     if (request === "../services/furnishStorage") {
       return {
         loadFurnishProject,
-        saveFurnishProject: async () => {}
+        saveFurnishProject: (project) =>
+          new Promise((resolve, reject) => {
+            pendingSaves.push({
+              project,
+              resolve,
+              reject
+            });
+          })
       };
     }
     throw new Error(`Unexpected test dependency: ${request}`);
@@ -94,6 +102,7 @@ function loadStore() {
   return {
     store: module.exports.useFurnishStore,
     pendingLoads,
+    pendingSaves,
     getLoadCount: () => loadCount
   };
 }
@@ -141,4 +150,82 @@ test("concurrent reads for one room reuse the same storage operation", async () 
 
   assert.equal(firstProject.roomId, studioRoom.id);
   assert.equal(secondProject.roomId, studioRoom.id);
+});
+
+test("save failure and pending state stay isolated by room", async () => {
+  const { store, pendingSaves } = loadStore();
+  const studioProject = createProject(studioRoom);
+  const backgroundProject = createProject(backgroundRoom);
+
+  const studioSave = store.getState().saveProject(studioProject);
+  const backgroundSave = store.getState().saveProject(backgroundProject);
+
+  assert.deepEqual(store.getState().pendingSaveRoomIds, {
+    [studioRoom.id]: true,
+    [backgroundRoom.id]: true
+  });
+
+  await Promise.resolve();
+  assert.equal(pendingSaves.length, 1);
+  assert.equal(pendingSaves[0].project.roomId, studioRoom.id);
+  pendingSaves[0].reject(new Error("studio write failed"));
+  assert.equal(await studioSave, false);
+  await Promise.resolve();
+
+  assert.deepEqual(store.getState().saveErrorsByRoomId, {
+    [studioRoom.id]: "软装布局尚未写入设备，请重试。"
+  });
+  assert.deepEqual(store.getState().pendingSaveRoomIds, {
+    [backgroundRoom.id]: true
+  });
+  assert.equal(pendingSaves.length, 2);
+  assert.equal(pendingSaves[1].project.roomId, backgroundRoom.id);
+
+  pendingSaves[1].resolve();
+  assert.equal(await backgroundSave, true);
+  assert.deepEqual(store.getState().saveErrorsByRoomId, {
+    [studioRoom.id]: "软装布局尚未写入设备，请重试。"
+  });
+  assert.deepEqual(store.getState().pendingSaveRoomIds, {});
+
+  const studioRetry = store.getState().retrySave(studioRoom.id);
+  assert.deepEqual(store.getState().pendingSaveRoomIds, {
+    [studioRoom.id]: true
+  });
+  await Promise.resolve();
+  assert.equal(pendingSaves.length, 3);
+  assert.equal(pendingSaves[2].project.roomId, studioRoom.id);
+  pendingSaves[2].resolve();
+
+  assert.equal(await studioRetry, true);
+  assert.deepEqual(store.getState().saveErrorsByRoomId, {});
+  assert.deepEqual(store.getState().pendingSaveRoomIds, {});
+});
+
+test("one room remains pending until every queued save settles", async () => {
+  const { store, pendingSaves } = loadStore();
+  const firstSave = store.getState().saveProject(createProject(studioRoom));
+  const secondSave = store.getState().saveProject({
+    ...createProject(studioRoom),
+    updatedAt: "2026-07-30T08:03:00.000Z"
+  });
+
+  assert.deepEqual(store.getState().pendingSaveRoomIds, {
+    [studioRoom.id]: true
+  });
+
+  await Promise.resolve();
+  assert.equal(pendingSaves.length, 1);
+  pendingSaves[0].resolve();
+  assert.equal(await firstSave, true);
+  await Promise.resolve();
+
+  assert.deepEqual(store.getState().pendingSaveRoomIds, {
+    [studioRoom.id]: true
+  });
+  assert.equal(pendingSaves.length, 2);
+
+  pendingSaves[1].resolve();
+  assert.equal(await secondSave, true);
+  assert.deepEqual(store.getState().pendingSaveRoomIds, {});
 });
