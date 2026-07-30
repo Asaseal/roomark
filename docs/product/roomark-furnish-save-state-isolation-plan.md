@@ -332,7 +332,7 @@ node --test tests/furnish-store-isolation.test.cjs
 
 Expected: 4 passed，0 failed。
 
-- [ ] **Step 8: 运行 TypeScript**
+- [ ] **Step 8: 确认页面旧选择器形成预期红灯**
 
 Run:
 
@@ -341,14 +341,7 @@ cd apps/mobile
 npm.cmd run typecheck
 ```
 
-Expected: exit code 0。
-
-- [ ] **Step 9: 提交 Store 实现**
-
-```powershell
-git add apps/mobile/stores/furnishStore.ts
-git commit -m "fix(android): isolate furnish save state"
-```
+Expected: 只因 `FurnishStudioScreen.tsx` 仍读取已删除的 `saveError` 和 `pendingSave` 而失败。Store 与页面将在 Task 3 作为一个可编译的原子提交提交。
 
 ### Task 3: 页面只选择当前房间状态
 
@@ -400,11 +393,11 @@ npm.cmd run typecheck
 
 Expected: exit code 0。
 
-- [ ] **Step 4: 提交页面接入**
+- [ ] **Step 4: 提交 Store 与页面接入**
 
 ```powershell
-git add apps/mobile/screens/FurnishStudioScreen.tsx
-git commit -m "fix(android): select furnish save state by room"
+git add apps/mobile/stores/furnishStore.ts apps/mobile/screens/FurnishStudioScreen.tsx
+git commit -m "fix(android): isolate furnish save state"
 ```
 
 ### Task 4: 文档与本地完整验收
