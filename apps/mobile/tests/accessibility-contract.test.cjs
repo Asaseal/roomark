@@ -41,7 +41,7 @@ test("furnishing controls expose contextual actions and disabled state", () => {
 
   assert.match(drawer, /放入 \$\{asset\.name\}，\$\{asset\.description\}/);
   for (const label of [
-    "保存软装布局并返回房源详情",
+    "保存软装布局并返回房源库",
     "根据当前布局生成 Mock 概念图",
     "锁定当前选中的家具",
     "重置 3D 场景视角",
@@ -53,5 +53,5 @@ test("furnishing controls expose contextual actions and disabled state", () => {
   }
   assert.match(studio, /accessibilityState=\{\{ disabled: !sceneReady \}\}/);
   assert.match(bridge, /accessibilityLabel="重新加载 3D 场景"/);
-  assert.match(bridge, /accessibilityLabel="退出 3D 场景并返回房源详情"/);
+  assert.match(bridge, /accessibilityLabel="退出 3D 场景并返回房源库"/);
 });

@@ -325,7 +325,7 @@ function FurnishWebViewInner(
                   <Text style={styles.retryButtonText}>重试加载</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  accessibilityLabel="退出 3D 场景并返回房源详情"
+                  accessibilityLabel="退出 3D 场景并返回房源库"
                   accessibilityRole="button"
                   style={styles.exitButton}
                   activeOpacity={0.86}

@@ -76,7 +76,7 @@ test("furnishing controls expose contextual actions and disabled state", () => {
 
   assert.match(drawer, /放入 \$\{asset\.name\}，\$\{asset\.description\}/);
   for (const label of [
-    "保存软装布局并返回房源详情",
+    "保存软装布局并返回房源库",
     "根据当前布局生成 Mock 概念图",
     "锁定当前选中的家具",
     "重置 3D 场景视角",
@@ -88,7 +88,7 @@ test("furnishing controls expose contextual actions and disabled state", () => {
   }
   assert.match(studio, /accessibilityState=\{\{ disabled: !sceneReady \}\}/);
   assert.match(bridge, /accessibilityLabel="重新加载 3D 场景"/);
-  assert.match(bridge, /accessibilityLabel="退出 3D 场景并返回房源详情"/);
+  assert.match(bridge, /accessibilityLabel="退出 3D 场景并返回房源库"/);
 });
 ```
 
@@ -278,7 +278,7 @@ accessibilityRole="button"
 返回按钮：
 
 ```tsx
-accessibilityLabel="保存软装布局并返回房源详情"
+accessibilityLabel="保存软装布局并返回房源库"
 accessibilityRole="button"
 ```
 
@@ -307,7 +307,7 @@ accessibilityLabel="重新加载 3D 场景"
 ```
 
 ```tsx
-accessibilityLabel="退出 3D 场景并返回房源详情"
+accessibilityLabel="退出 3D 场景并返回房源库"
 ```
 
 - [ ] **Step 4: 运行无障碍契约并确认绿灯**
@@ -386,7 +386,7 @@ Expected: 与本轮操作相关的 React Native、AndroidRuntime 和 Chromium �
 
 - [ ] **Step 5: 运行仓库级验证**
 
-Run: `powershell -ExecutionPolicy Bypass -File scripts/verify-product.ps1`
+Run: `powershell -ExecutionPolicy Bypass -File scripts/product-verify.ps1`
 
 Expected: Mobile、repository、public、后端和公开仓库检查全部通过。
 
@@ -440,7 +440,7 @@ Expected:
 
 - 仓库：`https://github.com/Asaseal/roomark`
 - 产品页：`https://asaseal.github.io/roomark/`
-- 公开页面不出现“黑客松”“演示”“半小时更新”等已禁止措辞。
+- 公开页面不出现已禁止的过时项目与临时交付措辞。
 
 ## 自审结果
 

@@ -304,7 +304,7 @@ export default function FurnishStudioScreen({ roomMesh, onBack, onProjectStatusC
 
         <View style={styles.topBar}>
           <TouchableOpacity
-            accessibilityLabel="保存软装布局并返回房源详情"
+            accessibilityLabel="保存软装布局并返回房源库"
             accessibilityRole="button"
             style={styles.iconButton}
             activeOpacity={0.86}
