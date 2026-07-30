@@ -27,7 +27,7 @@
 
 ## 自动化验证
 
-- Mobile 合约测试：66 passed，0 failed。
+- Mobile 合约测试：71 passed，0 failed。
 - Android release 交付契约：12 passed，0 failed。
 - TypeScript：`tsc --noEmit` passed。
 - Expo 公共配置：passed。
@@ -115,6 +115,16 @@
 - API 34 模拟器保留既有数据安装当前 Debug APK，房源库先显示样例房型 3 件家具且 Mock 未生成；进入工作室后本地 GLB 场景恢复完成，没有因后台项目读取回到永久等待。
 - 工作室新增第 4 件家具并显示“已保存”，返回房源库后显示 4 件且 Mock 仍未生成；强制停止并重新启动后状态不丢失，React Native、AndroidRuntime 与 Chromium 错误日志均为 0。
 
+同日继续降低现有 3D 软装的重复资产准备成本：
+
+- 新增独立的进程级静态资产服务；成功的 Three.js 运行时 HTML 与每个 GLB Base64 URI 在同一应用进程内复用，并发调用共享在途 Promise。
+- 运行时读取失败会淘汰对应 Promise；模型定位或 Base64 读取失败只返回现有本地 URI / 占位路径，不进入成功缓存，因此手动重试仍会重新读取。
+- 静态 `require()` 映射继续由 `FurnishWebView` 持有，WebView 仍关闭文件访问、通用文件 URL、混合内容、DOM Storage 和多窗口能力。
+- 新增 5 个真实缓存行为测试，覆盖运行时并发复用、失败重试、模型复用、失败重试和模型间隔离；Mobile 全套现为 71 passed、0 failed，全仓产品验证通过。
+- 本轮 `app:assembleDebug` 与 `app:createBundleReleaseJsAndAssets` 均为 `BUILD SUCCESSFUL`；Debug APK 为 139,744,953 bytes，Release 离线 bundle 为 1,051,084 bytes。
+- API 34 模拟器保留既有 4 件家具状态安装当前 Debug APK；首次进入和返回 Library 后再次进入均恢复本地 GLB 场景、4 件布局与“已恢复上次软装布局”状态。
+- 终止 WebView renderer PID 12366 后生成新 renderer PID 12472，场景自动恢复且未进入手动降级；React Native、AndroidRuntime 与 Chromium 错误日志均为 0。
+
 ## 生产发布整改
 
 2026-07-29 审计发现，历史 `release` 构建类型仍引用仓库内的 debug keystore，因此上文 APK 只能证明独立运行和模拟器流程，不能作为正式签名或商店发布证据。本轮已完成：
@@ -156,6 +166,8 @@
 | 布局变化作废旧 Mock | PASS | 保存 Mock 后新增家具，Library 回到“Mock 效果图未生成”；强制停止并重启后仍为 3 件家具和未生成状态 |
 | 并发项目加载隔离 | AUTOMATED PASS | 不同房间乱序完成时各自状态保持隔离；同一房间并发读取只访问一次设备存储 |
 | 软装保存、返回与冷启动 | PASS | 从 3 件恢复布局新增到 4 件并显示“已保存”；返回房源库和强制停止重启后均保留 4 件及 Mock 未生成状态，三类错误日志为 0 |
+| 3D 静态资产进程内复用 | AUTOMATED PASS | 运行时与模型成功结果在并发和连续调用间复用；失败结果淘汰后可重试，单模型失败不清除其他模型缓存 |
+| 软装重复进入与缓存恢复 | PASS | 4 件布局首次进入、返回后二次进入均恢复；renderer 12366 退出后由 12472 自动恢复，三类错误日志为 0 |
 
 ## 后续发布门槛：物理真机验收
 
