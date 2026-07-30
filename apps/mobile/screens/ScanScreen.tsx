@@ -78,7 +78,12 @@ export default function ScanScreen({ onBack, onSave }: ScanScreenProps) {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <TouchableOpacity style={styles.backButton} onPress={onBack}>
+        <TouchableOpacity
+          accessibilityLabel="返回房源库"
+          accessibilityRole="button"
+          style={styles.backButton}
+          onPress={onBack}
+        >
           <Text style={styles.backText}>返回 Library</Text>
         </TouchableOpacity>
         <Text style={styles.eyebrow}>现场房型记录</Text>
@@ -86,10 +91,22 @@ export default function ScanScreen({ onBack, onSave }: ScanScreenProps) {
         <Text style={styles.scopeNote}>当前版本是模拟扫描和户型图简化 3D，不是自动空间扫描。</Text>
 
         <View style={styles.modeRow}>
-          <TouchableOpacity style={[styles.modeButton, mode === "mock" ? styles.modeButtonActive : null]} onPress={() => setMode("mock")}>
+          <TouchableOpacity
+            accessibilityLabel="使用模拟扫描模式"
+            accessibilityRole="button"
+            accessibilityState={{ selected: mode === "mock" }}
+            style={[styles.modeButton, mode === "mock" ? styles.modeButtonActive : null]}
+            onPress={() => setMode("mock")}
+          >
             <Text style={[styles.modeText, mode === "mock" ? styles.modeTextActive : null]}>模拟扫描</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.modeButton, mode === "floorplan" ? styles.modeButtonActive : null]} onPress={() => setMode("floorplan")}>
+          <TouchableOpacity
+            accessibilityLabel="使用户型图简化 3D 模式"
+            accessibilityRole="button"
+            accessibilityState={{ selected: mode === "floorplan" }}
+            style={[styles.modeButton, mode === "floorplan" ? styles.modeButtonActive : null]}
+            onPress={() => setMode("floorplan")}
+          >
             <Text style={[styles.modeText, mode === "floorplan" ? styles.modeTextActive : null]}>户型图简化 3D</Text>
           </TouchableOpacity>
         </View>

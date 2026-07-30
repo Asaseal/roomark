@@ -27,7 +27,12 @@ export default function PropertyMapScreen({ properties, onBack, onOpenDetail, on
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
-        <TouchableOpacity style={styles.backButton} onPress={onBack}>
+        <TouchableOpacity
+          accessibilityLabel="返回房源库"
+          accessibilityRole="button"
+          style={styles.backButton}
+          onPress={onBack}
+        >
           <Text style={styles.backText}>返回 Library</Text>
         </TouchableOpacity>
         <Text style={styles.eyebrow}>离线看房地图</Text>
@@ -38,6 +43,9 @@ export default function PropertyMapScreen({ properties, onBack, onOpenDetail, on
           {filters.map((filter) => (
             <TouchableOpacity
               key={filter.id}
+              accessibilityLabel={`筛选：${filter.label}`}
+              accessibilityRole="button"
+              accessibilityState={{ selected: activeFilter === filter.id }}
               style={[styles.filterButton, activeFilter === filter.id ? styles.filterButtonActive : null]}
               onPress={() => {
                 setActiveFilter(filter.id);
@@ -58,6 +66,9 @@ export default function PropertyMapScreen({ properties, onBack, onOpenDetail, on
               <TouchableOpacity
                 key={property.id}
                 accessibilityLabel={`${property.title}，${property.riskSummary}`}
+                accessibilityHint={`选择 ${property.title} 并查看地图摘要`}
+                accessibilityRole="button"
+                accessibilityState={{ selected: selectedProperty?.id === property.id }}
                 style={[
                   styles.marker,
                   property.highRiskCount > 0 ? styles.markerRisk : property.hasScan ? styles.markerScanned : null,
@@ -81,10 +92,20 @@ export default function PropertyMapScreen({ properties, onBack, onOpenDetail, on
             <Text style={styles.sheetMeta}>{selectedProperty.monthlyRent} · 通勤 {selectedProperty.commuteTime}</Text>
             <Text style={styles.sheetRisk}>{selectedProperty.riskSummary}</Text>
             <View style={styles.sheetActions}>
-              <TouchableOpacity style={styles.sheetButton} onPress={() => onOpenDetail(selectedProperty)}>
+              <TouchableOpacity
+                accessibilityLabel={`打开 ${selectedProperty.title} 房源详情`}
+                accessibilityRole="button"
+                style={styles.sheetButton}
+                onPress={() => onOpenDetail(selectedProperty)}
+              >
                 <Text style={styles.sheetButtonText}>查看详情</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.sheetButtonDark} onPress={() => onStartFurnish(selectedProperty)}>
+              <TouchableOpacity
+                accessibilityLabel={`开始 ${selectedProperty.title} 模拟软装`}
+                accessibilityRole="button"
+                style={styles.sheetButtonDark}
+                onPress={() => onStartFurnish(selectedProperty)}
+              >
                 <Text style={styles.sheetButtonDarkText}>模拟软装</Text>
               </TouchableOpacity>
             </View>
