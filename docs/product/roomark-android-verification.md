@@ -27,7 +27,7 @@
 
 ## 自动化验证
 
-- Mobile 合约测试：55 passed，0 failed。
+- Mobile 合约测试：63 passed，0 failed。
 - Android release 交付契约：12 passed，0 failed。
 - TypeScript：`tsc --noEmit` passed。
 - Expo 公共配置：passed。
@@ -95,6 +95,17 @@
 - API 34 模拟器中先备份完整 `RKStorage`，再把样例房型的 `inspection` 和 `roomMesh.width` 改为错误类型。应用显示部分恢复提示，房源库、详情和离线地图正常可用；详情仍显示当前目录的 3m × 3m × 3m、¥4,800、3 项待确认和 1 项高风险，且没有 React Native、AndroidRuntime 或 Chromium 错误。
 - 验证后恢复原 SQLite 文件；产品状态值长度从注入状态回到 3,675 字符，比较与软装状态仍在，恢复提示消失，宿主机临时备份已删除。
 
+同日继续收紧现有 3D 软装 WebView 信任边界：
+
+- WebView 回传消息在进入 React、Zustand 和 AsyncStorage 前通过纯解析模块校验；拒绝超过 256,000 字符的载荷、未知消息、过长文本、伪造房间、被恢复模块丢弃的家具和超过 256 件的异常布局。
+- 异常桥接消息不会改变场景就绪状态、当前布局或保存队列；每个 WebView 实例只显示一次“已忽略异常的 3D 场景消息”提示，仍可继续使用当前场景。
+- WebView 只允许 `about:blank` 和内联 `data:text/html` 导航，关闭文件访问、通用文件 URL、混合内容、DOM Storage 和多窗口能力；本地 Three.js 与 GLB 流程仍正常加载。
+- 家具新增、删除、移动、旋转或缩放会移除旧的 Mock 概念预览，仅锁定状态变化会保留预览，避免 Library 展示与当前布局不一致的旧结果。
+- 模拟器真实保存 Mock 时发现，产品状态回写会让 App 重载全部软装项目并覆盖当前 `activeProject`。现改为只加载尚未进入内存且没有在途请求的房间项目，保存状态后工作室保持可用。
+- 纯桥接模块新增 6 个真实行为测试，App 重载回归新增 1 个契约测试；Mobile 全套现为 63 passed、0 failed，全仓产品验证通过。
+- 本轮 `app:assembleDebug` 与 `app:createBundleReleaseJsAndAssets` 均为 `BUILD SUCCESSFUL`；Debug APK 为 139,744,953 bytes，Release 离线 bundle 为 1,049,228 bytes。
+- API 34 模拟器实际恢复双人沙发 GLB 和上次布局；保存 Mock 后工作室保持可用，新增家具后 Library 从“Mock 效果图已保存”变为“Mock 效果图未生成”。强制停止并重新启动后仍显示 3 件家具和未生成状态，React Native、AndroidRuntime 与 Chromium 错误日志均为 0。
+
 ## 生产发布整改
 
 2026-07-29 审计发现，历史 `release` 构建类型仍引用仓库内的 debug keystore，因此上文 APK 只能证明独立运行和模拟器流程，不能作为正式签名或商店发布证据。本轮已完成：
@@ -131,6 +142,9 @@
 | 损坏注入后的数据复原 | PASS | 恢复原 SQLite 后重新启动；双人沙发模型和上次布局均恢复，恢复提示不再出现 |
 | 产品状态嵌套损坏恢复 | PASS | 备份 `RKStorage` 后注入错误类型的风险记录与房型宽度；显示部分恢复提示，房源库、详情和地图继续使用当前目录数据，无错误日志 |
 | 产品状态损坏注入复原 | PASS | 恢复原 SQLite 后产品状态值长度回到 3,675 字符；比较与软装状态保留，恢复提示消失，临时备份已清理 |
+| WebView 桥接输入边界 | PASS | 自动化拒绝超长、未知、伪造房间、家具丢失和超量消息；异常消息不进入产品状态，WebView 使用最小本地能力 |
+| Mock 保存后继续操作 | PASS | 保存 Mock 后工作室保持可用；未再次加载其他房间项目或进入永久等待 |
+| 布局变化作废旧 Mock | PASS | 保存 Mock 后新增家具，Library 回到“Mock 效果图未生成”；强制停止并重启后仍为 3 件家具和未生成状态 |
 
 ## 后续发布门槛：物理真机验收
 

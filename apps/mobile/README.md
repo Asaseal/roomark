@@ -75,6 +75,8 @@ cd apps/mobile/android
 
 读取软装草稿时，Roomark 会逐项校验家具坐标、缩放、类别、时间和唯一 ID，只把安全数据交给 WebView。损坏草稿会保留仍可恢复的家具、使用当前房源的房型，并在软装页显示恢复提示；修复结果会在用户下一次正常保存或退出时写回设备。
 
+WebView 回传消息在进入 React 状态和本地存储前会校验消息大小、协议类型、文本长度、房间归属和家具数量；异常消息只显示一次提示，不会覆盖当前可用布局。嵌入页只允许 `about:blank` 和内联 `data:text/html` 导航，并关闭文件访问、混合内容和多窗口能力。家具新增、删除、移动、旋转或缩放后，旧的 Mock 概念预览会自动作废；仅锁定家具不会改变预览状态。
+
 更新内置 3D 运行时后，运行 `npm.cmd run build:furnish-runtime`，并同时提交 `assets/vendor/furnish-runtime.js.txt` 与 `assets/vendor/three-LICENSE.txt`。生成脚本固定使用 `package.json` 中的 Three.js 版本，确保本地构建和 CI 可复现。
 
 ## 当前边界
