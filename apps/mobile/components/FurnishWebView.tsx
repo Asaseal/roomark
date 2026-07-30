@@ -3,7 +3,9 @@ import type { Ref } from "react";
 import { Asset } from "expo-asset";
 import * as FileSystem from "expo-file-system";
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { WebView, WebViewMessageEvent } from "react-native-webview";
+import type { NativeSyntheticEvent } from "react-native";
+import { WebView } from "react-native-webview";
+import type { WebViewMessageEvent } from "react-native-webview";
 import type { FurnishNativeMessage, FurnishProject, FurnishSceneMessage, FurnitureAsset } from "../types/furnish";
 import { getFurnishSceneHtml } from "../webview/furnish-scene/sceneHtml";
 
@@ -34,6 +36,10 @@ const furnishRuntimeModule = require("../assets/vendor/furnish-runtime.js.txt");
 
 const GLB_DATA_URI_PREFIX = "data:model/gltf-binary;base64,";
 
+type WebViewRenderProcessGoneEvent = NativeSyntheticEvent<{
+  didCrash: boolean;
+}>;
+
 function FurnishWebViewInner(
   {
     project,
@@ -57,6 +63,7 @@ function FurnishWebViewInner(
   const [webViewKey, setWebViewKey] = useState(0);
   const loadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initSentRef = useRef(false);
+  const automaticRecoveryAttemptedRef = useRef(false);
 
   const resolvedAssets = useMemo(
     () =>
@@ -208,14 +215,44 @@ function FurnishWebViewInner(
     });
   }, [assetResolutionReady, project, resolvedAssets, sceneReady, sendMessage]);
 
-  const retryScene = () => {
+  const restartScene = useCallback(() => {
     clearLoadTimeout();
     setLoadError(null);
     setSceneReady(false);
     setSceneHtml(null);
+    initSentRef.current = false;
     onSceneReadyChanged(false);
     setWebViewKey((value) => value + 1);
+  }, [clearLoadTimeout, onSceneReadyChanged]);
+
+  const retryScene = () => {
+    automaticRecoveryAttemptedRef.current = false;
+    restartScene();
   };
+
+  const handleRenderProcessGone = useCallback(
+    (event: WebViewRenderProcessGoneEvent) => {
+      clearLoadTimeout();
+      setSceneReady(false);
+      onSceneReadyChanged(false);
+
+      if (!automaticRecoveryAttemptedRef.current) {
+        automaticRecoveryAttemptedRef.current = true;
+        onSceneNotice(
+          event.nativeEvent.didCrash
+            ? "3D 场景意外退出，正在恢复"
+            : "3D 场景被系统回收，正在恢复"
+        );
+        restartScene();
+        return;
+      }
+
+      const message = "3D 场景连续恢复失败，请重试或返回房源详情";
+      setLoadError(message);
+      onSceneError(message);
+    },
+    [clearLoadTimeout, onSceneError, onSceneNotice, onSceneReadyChanged, restartScene]
+  );
 
   const handleMessage = (event: WebViewMessageEvent) => {
     try {
@@ -223,6 +260,7 @@ function FurnishWebViewInner(
 
       if (message.type === "SCENE_READY") {
         clearLoadTimeout();
+        automaticRecoveryAttemptedRef.current = false;
         setSceneReady(true);
         onSceneReadyChanged(true);
         setLoadError(null);
@@ -270,6 +308,7 @@ function FurnishWebViewInner(
           allowUniversalAccessFromFileURLs
           mixedContentMode="always"
           onMessage={handleMessage}
+          onRenderProcessGone={handleRenderProcessGone}
           onError={() => {
             setLoadError("WebView 加载失败，请点击重试");
             setSceneReady(false);
