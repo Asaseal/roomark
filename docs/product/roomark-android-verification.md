@@ -151,6 +151,20 @@
 - API 34 模拟器保留现有数据覆盖安装后，房源库恢复 3 套对比，样例房型显示 4 件家具；软装工作室加载本地 GLB 并显示“已恢复上次软装布局”，返回房源库后状态保持，React Native、AndroidRuntime 与 Chromium 错误日志均为 0。
 - 模拟器正常数据回归不等同于物理设备存储故障注入；真机数据库故障、进程回收和厂商系统兼容性仍是正式发布前验收门槛。
 
+## 软装保存状态隔离
+
+2026-07-30 继续修复现有多房间软装保存状态的所有权：项目、读取和恢复警告此前已经按 `roomId` 隔离，但“保存失败”和“正在保存”仍是全局状态，会让一个房间的失败出现在另一个房间，或被另一个房间的成功错误清除。本轮完成：
+
+- Store 使用 `saveErrorsByRoomId` 和 `pendingSaveRoomIds`；软装页面只选择当前 `roomMesh.id` 的保存反馈，不改变按钮、文案或导航。
+- 内部 `pendingSaveCountsByRoomId` 只负责当前进程的并发结算；同一房间有多次排队保存时，第一次完成后仍保持保存中，最后一次结算后才清除。
+- 现有 `furnishPersistenceQueue` 继续串行所有 AsyncStorage 写入；本轮没有改变存储键、项目 schema、350ms 防抖、后台刷新或退出前保存。
+- 页面仍优先重试当前会话内尚未写入的布局；如果失败发生在页面退出后的异步保存中，重新进入页面后会回退到 Store 的 `retrySave(roomMesh.id)`，避免按钮在本地 pending ref 已释放时空操作。合约测试固定了两条分支。
+- 新增 2 个真实 Zustand Store 行为测试：A 房间失败后 B 仍在途，B 成功不清除 A 错误，A 重试成功只清除 A；同一房间两次保存只有全部完成后才清除在途状态。Mobile 全套现为 81 passed、0 failed。
+- TypeScript、Expo 公共配置、全仓公开内容、Web 页面、产品预检及 Rust 后端格式、Clippy 和测试全部通过。
+- `app:assembleDebug` 与 release JavaScript bundle 构建成功；Debug APK 为 139,744,953 bytes，Release bundle 为 1,142,504 bytes。
+- API 34 模拟器保留现有数据覆盖安装后，房源库恢复 3 套对比和样例房型 4 件家具；进入工作室后本地 GLB 与“已恢复上次软装布局”出现，使用现有返回动作经过保存队列回到房源库，再次进入仍恢复 4 件布局，React Native、AndroidRuntime 与 Chromium 错误日志均为 0。
+- 模拟器正常保存不能替代物理设备写入失败、存储压力、进程终止和厂商系统兼容性验收；故障隔离的主要证据来自可控真实 Promise Store 测试。
+
 ## 生产发布整改
 
 2026-07-29 审计发现，历史 `release` 构建类型仍引用仓库内的 debug keystore，因此上文 APK 只能证明独立运行和模拟器流程，不能作为正式签名或商店发布证据。本轮已完成：
