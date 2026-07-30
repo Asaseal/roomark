@@ -42,8 +42,12 @@ export default function FurnishStudioScreen({ roomMesh, onBack, onProjectStatusC
   const setProject = useFurnishStore((state) => state.setProject);
   const project = useFurnishStore((state) => state.projectsByRoomId[roomMesh.id]);
   const loading = useFurnishStore((state) => state.loadingRoomIds[roomMesh.id] ?? false);
-  const saveError = useFurnishStore((state) => state.saveError);
-  const pendingSave = useFurnishStore((state) => state.pendingSave);
+  const saveError = useFurnishStore(
+    (state) => state.saveErrorsByRoomId[roomMesh.id]
+  );
+  const pendingSave = useFurnishStore(
+    (state) => state.pendingSaveRoomIds[roomMesh.id] ?? false
+  );
   const recoveryWarning = useFurnishStore(
     (state) => state.recoveryWarningsByRoomId[roomMesh.id]
   );
