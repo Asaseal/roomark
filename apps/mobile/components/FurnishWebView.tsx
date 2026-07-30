@@ -1,17 +1,18 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import type { Ref } from "react";
-import { Asset } from "expo-asset";
-import * as FileSystem from "expo-file-system";
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import type { NativeSyntheticEvent } from "react-native";
 import { WebView } from "react-native-webview";
 import type { WebViewMessageEvent } from "react-native-webview";
 import {
+  loadFurnishSceneHtml,
+  resolveFurnishModelUris
+} from "../services/furnishAssetCache";
+import {
   isAllowedFurnishNavigation,
   parseFurnishSceneMessage
 } from "../services/furnishSceneBridge";
 import type { FurnishNativeMessage, FurnishProject, FurnitureAsset } from "../types/furnish";
-import { getFurnishSceneHtml } from "../webview/furnish-scene/sceneHtml";
 
 export type FurnishWebViewHandle = {
   sendMessage: (message: FurnishNativeMessage) => void;
@@ -38,7 +39,6 @@ const furnitureModelModules: Record<string, number> = {
 };
 const furnishRuntimeModule = require("../assets/vendor/furnish-runtime.js.txt");
 
-const GLB_DATA_URI_PREFIX = "data:model/gltf-binary;base64,";
 const SCENE_LOAD_TIMEOUT_MS = 45000;
 
 type WebViewRenderProcessGoneEvent = NativeSyntheticEvent<{
@@ -139,17 +139,10 @@ function FurnishWebViewInner(
     async function loadFurnishRuntime() {
       try {
         setSceneHtml(null);
-        const [runtimeAsset] = await Asset.loadAsync(furnishRuntimeModule);
-        const readableRuntimeUri = runtimeAsset.localUri ?? runtimeAsset.uri;
-
-        if (!readableRuntimeUri) {
-          throw new Error("Bundled 3D runtime URI is unavailable");
-        }
-
-        const runtimeSource = await FileSystem.readAsStringAsync(readableRuntimeUri);
+        const html = await loadFurnishSceneHtml(furnishRuntimeModule);
 
         if (mounted) {
-          setSceneHtml(getFurnishSceneHtml(runtimeSource));
+          setSceneHtml(html);
         }
       } catch {
         if (mounted) {
@@ -174,34 +167,11 @@ function FurnishWebViewInner(
     let mounted = true;
 
     async function resolveModelAssets() {
-      const entries = await Promise.all(
-        Object.entries(furnitureModelModules).map(async ([modelUri, moduleId]) => {
-          try {
-            const [modelAsset] = await Asset.loadAsync(moduleId);
-            const readableUri = modelAsset.localUri ?? modelAsset.uri;
-
-            if (!readableUri) {
-              return [modelUri, modelUri] as const;
-            }
-
-            try {
-              const base64Model = await FileSystem.readAsStringAsync(readableUri, {
-                encoding: FileSystem.EncodingType.Base64
-              });
-              return [modelUri, `${GLB_DATA_URI_PREFIX}${base64Model}`] as const;
-            } catch {
-              onSceneNotice(`${modelUri} 已解析为本地文件 URI，若真机无法读取会自动使用占位模型`);
-              return [modelUri, readableUri] as const;
-            }
-          } catch {
-            onSceneNotice(`${modelUri} 资源准备失败，将使用占位模型`);
-            return [modelUri, modelUri] as const;
-          }
-        })
-      );
+      const result = await resolveFurnishModelUris(furnitureModelModules);
 
       if (mounted) {
-        setResolvedModelUris(Object.fromEntries(entries));
+        result.notices.forEach(onSceneNotice);
+        setResolvedModelUris(result.uris);
         setAssetResolutionReady(true);
       }
     }
