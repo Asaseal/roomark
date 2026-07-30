@@ -135,11 +135,10 @@ export default function FurnishStudioScreen({ roomMesh, onBack, onProjectStatusC
   const handleProjectChanged = useCallback(
     (project: FurnishProject) => {
       const furnitureCount = project.placedFurniture.length;
-      const projectToSave = project.renderPreview || !activeProject?.renderPreview ? project : { ...project, renderPreview: activeProject.renderPreview };
       setStatusText(furnitureCount > 0 ? `已摆放 ${furnitureCount} 件家具` : "房间已清空");
       setSaveText("等待保存");
-      setActiveProject(projectToSave);
-      pendingProjectRef.current = projectToSave;
+      setActiveProject(project);
+      pendingProjectRef.current = project;
       if (projectSaveTimerRef.current) {
         clearTimeout(projectSaveTimerRef.current);
       }
@@ -147,7 +146,7 @@ export default function FurnishStudioScreen({ roomMesh, onBack, onProjectStatusC
         void flushProjectSave();
       }, 350);
     },
-    [activeProject?.renderPreview, flushProjectSave, setActiveProject]
+    [flushProjectSave, setActiveProject]
   );
 
   const handleRetrySave = async () => {

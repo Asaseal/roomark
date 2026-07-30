@@ -149,13 +149,13 @@ test("studio keeps the latest layout in memory and flushes it when the app backg
 
   assert.match(screen, /AppState/);
   assert.match(screen, /const setActiveProject = useFurnishStore/);
-  assert.match(screen, /setActiveProject\(projectToSave\)/);
+  assert.match(screen, /setActiveProject\(project\)/);
   assert.match(screen, /AppState\.addEventListener\("change"/);
   assert.match(screen, /nextState !== "active"/);
   assert.match(screen, /void flushProjectSave\(\)/);
 
-  const memoryDraftIndex = screen.indexOf("setActiveProject(projectToSave)");
-  const pendingDraftIndex = screen.indexOf("pendingProjectRef.current = projectToSave");
+  const memoryDraftIndex = screen.indexOf("setActiveProject(project)");
+  const pendingDraftIndex = screen.indexOf("pendingProjectRef.current = project");
   assert.ok(memoryDraftIndex >= 0 && memoryDraftIndex < pendingDraftIndex);
 });
 
@@ -178,4 +178,30 @@ test("3D loading timeout starts after the local scene is ready to mount", () => 
   assert.match(bridge, /const SCENE_LOAD_TIMEOUT_MS = 45000/);
   assert.match(bridge, /if \(!sceneHtml\) \{\s*return;/);
   assert.match(bridge, /}, \[clearLoadTimeout, onSceneError, onSceneReadyChanged, sceneHtml, webViewKey\]\);/);
+});
+
+test("WebView trust boundary validates messages and uses minimum capabilities", () => {
+  const bridge = read(path.join("components", "FurnishWebView.tsx"));
+  const screen = read(path.join("screens", "FurnishStudioScreen.tsx"));
+
+  assert.match(bridge, /parseFurnishSceneMessage/);
+  assert.match(bridge, /isAllowedFurnishNavigation/);
+  assert.match(bridge, /invalidSceneMessageNoticedRef/);
+  assert.match(bridge, /已忽略异常的 3D 场景消息，当前布局未保存/);
+  assert.doesNotMatch(
+    bridge,
+    /JSON\.parse\(event\.nativeEvent\.data\) as FurnishSceneMessage/
+  );
+  assert.match(bridge, /originWhitelist=\{\["about:blank", "data:text\/html\*"\]\}/);
+  assert.match(bridge, /allowFileAccess=\{false\}/);
+  assert.match(bridge, /allowFileAccessFromFileURLs=\{false\}/);
+  assert.match(bridge, /allowUniversalAccessFromFileURLs=\{false\}/);
+  assert.match(bridge, /mixedContentMode="never"/);
+  assert.match(bridge, /setSupportMultipleWindows=\{false\}/);
+  assert.match(bridge, /onShouldStartLoadWithRequest/);
+  assert.doesNotMatch(
+    screen,
+    /project\.renderPreview \|\| !activeProject\?\.renderPreview/
+  );
+  assert.match(screen, /setActiveProject\(project\)/);
 });

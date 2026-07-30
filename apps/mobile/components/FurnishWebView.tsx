@@ -6,7 +6,11 @@ import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "rea
 import type { NativeSyntheticEvent } from "react-native";
 import { WebView } from "react-native-webview";
 import type { WebViewMessageEvent } from "react-native-webview";
-import type { FurnishNativeMessage, FurnishProject, FurnishSceneMessage, FurnitureAsset } from "../types/furnish";
+import {
+  isAllowedFurnishNavigation,
+  parseFurnishSceneMessage
+} from "../services/furnishSceneBridge";
+import type { FurnishNativeMessage, FurnishProject, FurnitureAsset } from "../types/furnish";
 import { getFurnishSceneHtml } from "../webview/furnish-scene/sceneHtml";
 
 export type FurnishWebViewHandle = {
@@ -65,6 +69,7 @@ function FurnishWebViewInner(
   const loadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initSentRef = useRef(false);
   const automaticRecoveryAttemptedRef = useRef(false);
+  const invalidSceneMessageNoticedRef = useRef(false);
 
   const resolvedAssets = useMemo(
     () =>
@@ -227,6 +232,7 @@ function FurnishWebViewInner(
     setSceneReady(false);
     setSceneHtml(null);
     initSentRef.current = false;
+    invalidSceneMessageNoticedRef.current = false;
     onSceneReadyChanged(false);
     setWebViewKey((value) => value + 1);
   }, [clearLoadTimeout, onSceneReadyChanged]);
@@ -261,42 +267,44 @@ function FurnishWebViewInner(
   );
 
   const handleMessage = (event: WebViewMessageEvent) => {
-    try {
-      const message = JSON.parse(event.nativeEvent.data) as FurnishSceneMessage;
+    const result = parseFurnishSceneMessage(event.nativeEvent.data, project);
 
-      if (message.type === "SCENE_READY") {
-        clearLoadTimeout();
-        automaticRecoveryAttemptedRef.current = false;
-        setSceneReady(true);
-        onSceneReadyChanged(true);
-        setLoadError(null);
-        onSceneReady();
+    if (!result.ok) {
+      if (!invalidSceneMessageNoticedRef.current) {
+        invalidSceneMessageNoticedRef.current = true;
+        onSceneNotice("已忽略异常的 3D 场景消息，当前布局未保存");
       }
+      return;
+    }
 
-      if (message.type === "PROJECT_CHANGED") {
-        onProjectChanged(message.project);
-      }
+    const message = result.message;
+    if (message.type === "SCENE_READY") {
+      clearLoadTimeout();
+      automaticRecoveryAttemptedRef.current = false;
+      setSceneReady(true);
+      onSceneReadyChanged(true);
+      setLoadError(null);
+      onSceneReady();
+    }
 
-      if (message.type === "FURNITURE_SELECTED") {
-        onFurnitureSelected(message.furnitureId);
-      }
+    if (message.type === "PROJECT_CHANGED") {
+      onProjectChanged(message.project);
+    }
 
-      if (message.type === "SCENE_ERROR") {
-        clearLoadTimeout();
-        setLoadError(message.message);
-        setSceneReady(false);
-        onSceneReadyChanged(false);
-        onSceneError(message.message);
-      }
+    if (message.type === "FURNITURE_SELECTED") {
+      onFurnitureSelected(message.furnitureId);
+    }
 
-      if (message.type === "SCENE_NOTICE") {
-        onSceneNotice(message.message);
-      }
-    } catch {
-      setLoadError("无法解析 3D 场景消息");
+    if (message.type === "SCENE_ERROR") {
+      clearLoadTimeout();
+      setLoadError(message.message);
       setSceneReady(false);
       onSceneReadyChanged(false);
-      onSceneError("无法解析 3D 场景消息");
+      onSceneError(message.message);
+    }
+
+    if (message.type === "SCENE_NOTICE") {
+      onSceneNotice(message.message);
     }
   };
 
@@ -306,13 +314,18 @@ function FurnishWebViewInner(
         <WebView
           key={webViewKey}
           ref={webViewRef}
-          originWhitelist={["*"]}
+          originWhitelist={["about:blank", "data:text/html*"]}
           source={{ html: sceneHtml, baseUrl: "" }}
           javaScriptEnabled
-          domStorageEnabled
-          allowFileAccess
-          allowUniversalAccessFromFileURLs
-          mixedContentMode="always"
+          domStorageEnabled={false}
+          allowFileAccess={false}
+          allowFileAccessFromFileURLs={false}
+          allowUniversalAccessFromFileURLs={false}
+          mixedContentMode="never"
+          setSupportMultipleWindows={false}
+          onShouldStartLoadWithRequest={(request) =>
+            isAllowedFurnishNavigation(request.url)
+          }
           onMessage={handleMessage}
           onRenderProcessGone={handleRenderProcessGone}
           onError={() => {

@@ -725,6 +725,15 @@ pendingProjectRef.current = project;
 
 Remove `activeProject?.renderPreview` from the callback dependency list.
 
+Update the existing “studio keeps the latest layout in memory” contract to search for:
+
+```js
+assert.match(screen, /setActiveProject\(project\)/);
+const memoryDraftIndex = screen.indexOf("setActiveProject(project)");
+const pendingDraftIndex = screen.indexOf("pendingProjectRef.current = project");
+assert.ok(memoryDraftIndex >= 0 && memoryDraftIndex < pendingDraftIndex);
+```
+
 - [ ] **Step 6: Run focused contracts, bridge behavior, and typecheck**
 
 Run:
