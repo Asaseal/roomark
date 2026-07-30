@@ -27,7 +27,7 @@
 
 ## 自动化验证
 
-- Mobile 合约测试：46 passed，0 failed。
+- Mobile 合约测试：50 passed，0 failed。
 - Android release 交付契约：12 passed，0 failed。
 - TypeScript：`tsc --noEmit` passed。
 - Expo 公共配置：passed。
@@ -73,6 +73,17 @@
 - 自动化契约禁止详情页重新引入上述误导性表述。
 - API 34 模拟器实际打开并滚动房源详情页，确认可见文案为“模拟与概念图”“Mock 概念图”“看房记录摘要”和本地记录说明，未出现 AI 或 PDF 承诺。
 
+同日继续补齐软装草稿损坏恢复：
+
+- AsyncStorage 中的软装草稿不再通过浅层顶级字段检查后直接进入 WebView；纯恢复模块校验项目、家具向量、缩放、类别、时间、重复 ID、效果图和同步状态。
+- 当前房源传入的 `roomMesh` 始终是场景权威来源，旧草稿不能再覆盖当前房型。
+- 一条家具损坏不会清空整份草稿；合法且唯一的家具继续保留，越界位置限制到当前房间，损坏或不再诚实的 Mock 预览被移除。
+- 完整损坏和部分恢复使用不同中文提示，软装页通过 Android alert 与 live-region 语义播报；用户正常保存后清除恢复提示。
+- 纯恢复模块有 4 个真实行为测试，Mobile 全套现为 50 passed、0 failed；物理真机的数据库破坏注入仍保留为正式发布前外部验收门槛。
+- 本轮 `app:assembleDebug` 与 `app:createBundleReleaseJsAndAssets` 均为 `BUILD SUCCESSFUL`；Debug APK 为 139,744,953 bytes，Release 离线 bundle 为 1,043,076 bytes。
+- API 34 模拟器中先备份完整 `RKStorage`，再把样例房型草稿替换为房间 ID 不匹配的 JSON。应用正常启动，软装页显示“软装记录无法读取，已恢复空白布局。”，空白 3D 房间仍可操作，且没有 React Native、AndroidRuntime 或 Chromium 错误。
+- 验证后强制停止应用并恢复原 SQLite 文件；草稿值长度从注入后的 125 bytes 回到 520 bytes。重新启动软装页后，双人沙发模型与“已恢复上次软装布局”再次出现，恢复提示消失。
+
 ## 生产发布整改
 
 2026-07-29 审计发现，历史 `release` 构建类型仍引用仓库内的 debug keystore，因此上文 APK 只能证明独立运行和模拟器流程，不能作为正式签名或商店发布证据。本轮已完成：
@@ -105,6 +116,8 @@
 | WebView renderer 单次退出 | PASS | 终止 renderer PID 6951 后生成新 renderer PID 7085，场景自动恢复且布局未丢失 |
 | WebView renderer 连续退出 | PASS | 首次恢复期间再次终止 PID 7449，应用停止自动重启并显示手动重试与返回入口 |
 | renderer 手动重试 | PASS | 连续退出后的“重试加载”重新打开场景，并恢复已保存软装布局 |
+| 软装草稿整份损坏恢复 | PASS | 备份 `RKStorage` 后注入房间 ID 不匹配草稿；软装页显示明确恢复提示并打开可用空白 3D 房间，无错误日志 |
+| 损坏注入后的数据复原 | PASS | 恢复原 SQLite 后重新启动；双人沙发模型和上次布局均恢复，恢复提示不再出现 |
 
 ## 后续发布门槛：物理真机验收
 

@@ -71,6 +71,8 @@ cd apps/mobile/android
 
 软装布局变化会先进入当前会话的内存草稿，再通过防抖队列写入设备；应用切到后台时会主动刷新待保存布局。Android WebView renderer 被系统回收或崩溃后自动恢复一次，连续失败时停止循环并提供手动重试和返回入口。
 
+读取软装草稿时，Roomark 会逐项校验家具坐标、缩放、类别、时间和唯一 ID，只把安全数据交给 WebView。损坏草稿会保留仍可恢复的家具、使用当前房源的房型，并在软装页显示恢复提示；修复结果会在用户下一次正常保存或退出时写回设备。
+
 更新内置 3D 运行时后，运行 `npm.cmd run build:furnish-runtime`，并同时提交 `assets/vendor/furnish-runtime.js.txt` 与 `assets/vendor/three-LICENSE.txt`。生成脚本固定使用 `package.json` 中的 Three.js 版本，确保本地构建和 CI 可复现。
 
 ## 当前边界
