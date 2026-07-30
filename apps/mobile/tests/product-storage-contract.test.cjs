@@ -91,3 +91,27 @@ test("product writes are serialized without poisoning later saves", () => {
     assert.match(store, new RegExp(`${operation}[\\s\\S]*persistStateSafely`));
   }
 });
+
+test("local reads are bounded without timing out non-cancellable writes", () => {
+  const productStorage = read(path.join("services", "productStorage.ts"));
+  const furnishStorage = read(path.join("services", "furnishStorage.ts"));
+
+  assert.match(productStorage, /runStorageRead/);
+  assert.match(
+    productStorage,
+    /runStorageRead\(\s*\(\) => AsyncStorage\.getItem\(productStorageKey\)/
+  );
+  assert.match(furnishStorage, /runStorageRead/);
+  assert.match(
+    furnishStorage,
+    /runStorageRead\(\s*\(\) => AsyncStorage\.getItem\(`\$\{storagePrefix\}\$\{roomMesh\.id\}`\)/
+  );
+  assert.match(
+    furnishStorage,
+    /catch[\s\S]*recoverFurnishProject\(undefined, roomMesh\)/
+  );
+  assert.doesNotMatch(
+    `${productStorage}\n${furnishStorage}`,
+    /runStorageRead\(\(\) => AsyncStorage\.(setItem|removeItem)/
+  );
+});

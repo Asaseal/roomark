@@ -5,22 +5,26 @@ import {
   recoverFurnishProject,
   type FurnishProjectLoadResult
 } from "./furnishProjectRecovery";
+import { runStorageRead } from "./storageOperation";
 
 const storagePrefix = "roomark:furnish-project:";
 
 export { createEmptyFurnishProject } from "./furnishProjectRecovery";
 
 export async function loadFurnishProject(roomMesh: RoomMesh): Promise<FurnishProjectLoadResult> {
-  const stored = await AsyncStorage.getItem(`${storagePrefix}${roomMesh.id}`);
-
-  if (!stored) {
-    return {
-      project: createEmptyFurnishProject(roomMesh),
-      recovered: false
-    };
-  }
-
   try {
+    const stored = await runStorageRead(
+      () => AsyncStorage.getItem(`${storagePrefix}${roomMesh.id}`),
+      { operationName: "软装记录读取" }
+    );
+
+    if (!stored) {
+      return {
+        project: createEmptyFurnishProject(roomMesh),
+        recovered: false
+      };
+    }
+
     return recoverFurnishProject(JSON.parse(stored) as unknown, roomMesh);
   } catch {
     return recoverFurnishProject(undefined, roomMesh);

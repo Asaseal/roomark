@@ -6,6 +6,7 @@ import {
   recoverProductState,
   type ProductStateLoadResult
 } from "./productStateRecovery";
+import { runStorageRead } from "./storageOperation";
 
 const productStorageKey = "roomark:mobile:product-state:v1";
 const MAX_PRODUCT_STATE_LENGTH = 2_000_000;
@@ -18,7 +19,10 @@ export function createInitialProductState(): ProductState {
 
 export async function loadProductState(): Promise<ProductStateLoadResult> {
   try {
-    const storedValue = await AsyncStorage.getItem(productStorageKey);
+    const storedValue = await runStorageRead(
+      () => AsyncStorage.getItem(productStorageKey),
+      { operationName: "看房记录读取" }
+    );
     if (!storedValue) {
       return {
         state: createInitialProductState(),
