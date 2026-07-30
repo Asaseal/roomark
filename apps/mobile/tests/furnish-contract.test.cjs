@@ -135,3 +135,31 @@ test("3D furnishing runtime is bundled for first-run offline use", () => {
   assert.doesNotMatch(runtime, /https?:\/\/cdn\.jsdelivr\.net/);
   assert.match(license, /MIT License/);
 });
+
+test("studio keeps the latest layout in memory and flushes it when the app backgrounds", () => {
+  const screen = read(path.join("screens", "FurnishStudioScreen.tsx"));
+
+  assert.match(screen, /AppState/);
+  assert.match(screen, /const setActiveProject = useFurnishStore/);
+  assert.match(screen, /setActiveProject\(projectToSave\)/);
+  assert.match(screen, /AppState\.addEventListener\("change"/);
+  assert.match(screen, /nextState !== "active"/);
+  assert.match(screen, /void flushProjectSave\(\)/);
+
+  const memoryDraftIndex = screen.indexOf("setActiveProject(projectToSave)");
+  const pendingDraftIndex = screen.indexOf("pendingProjectRef.current = projectToSave");
+  assert.ok(memoryDraftIndex >= 0 && memoryDraftIndex < pendingDraftIndex);
+});
+
+test("Android WebView renderer exit recovers once before showing manual fallback", () => {
+  const bridge = read(path.join("components", "FurnishWebView.tsx"));
+
+  assert.match(bridge, /WebViewRenderProcessGoneEvent/);
+  assert.match(bridge, /automaticRecoveryAttemptedRef/);
+  assert.match(bridge, /onRenderProcessGone=\{handleRenderProcessGone\}/);
+  assert.match(bridge, /if \(!automaticRecoveryAttemptedRef\.current\)/);
+  assert.match(bridge, /automaticRecoveryAttemptedRef\.current = true/);
+  assert.match(bridge, /automaticRecoveryAttemptedRef\.current = false/);
+  assert.match(bridge, /3D 场景意外退出，正在恢复/);
+  assert.match(bridge, /3D 场景连续恢复失败，请重试或返回房源详情/);
+});
