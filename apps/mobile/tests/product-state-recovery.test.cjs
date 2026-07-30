@@ -217,3 +217,43 @@ test("invalid top-level state restores the complete current catalog", () => {
   assert.deepEqual(result.state.comparisonIds, [catalogProperty.id]);
   assert.equal(result.state.updatedAt, fixedNow);
 });
+
+test("unsafe dictionary identifiers cannot become properties or comparisons", () => {
+  const { recoverProductState } = loadRecoveryService();
+  const unsafeProperty = createProperty("__proto__", {
+    roomMesh: {
+      id: "__proto__",
+      name: "不安全房型",
+      source: "mock",
+      width: 3,
+      depth: 3,
+      height: 3,
+      capturedAt: "2026-07-30T05:50:00.000Z"
+    }
+  });
+  const stored = createState(
+    {
+      [catalogProperty.id]: createProperty(catalogProperty.id),
+      ["__proto__"]: unsafeProperty
+    },
+    {
+      comparisonIds: ["__proto__", "constructor", "toString"]
+    }
+  );
+
+  const result = recoverProductState(stored, [catalogProperty], fixedNow);
+
+  assert.equal(result.recoveredFromError, true);
+  assert.equal(
+    Object.getPrototypeOf(result.state.propertiesById),
+    Object.prototype
+  );
+  assert.equal(
+    Object.prototype.hasOwnProperty.call(
+      result.state.propertiesById,
+      "__proto__"
+    ),
+    false
+  );
+  assert.deepEqual(result.state.comparisonIds, []);
+});

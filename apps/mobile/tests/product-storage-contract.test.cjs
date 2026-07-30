@@ -23,18 +23,20 @@ test("product state is versioned and persisted under one stable key", () => {
   assert.match(storage, /export function createInitialProductState/);
 });
 
-test("stored records merge with catalog and corrupt data falls back safely", () => {
+test("stored records pass through strict recovery before reaching the product", () => {
   const storage = read(path.join("services", "productStorage.ts"));
+  const recovery = read(path.join("services", "productStateRecovery.ts"));
   const store = read(path.join("stores", "productStore.ts"));
 
-  assert.match(storage, /mergeProductStateWithCatalog/);
+  assert.match(storage, /recoverProductState/);
+  assert.match(storage, /MAX_PRODUCT_STATE_LENGTH = 2_000_000/);
+  assert.match(storage, /storedValue\.length > MAX_PRODUCT_STATE_LENGTH/);
+  assert.match(storage, /Promise<ProductStateLoadResult>/);
   assert.match(storage, /catch/);
   assert.match(storage, /createInitialProductState\(\)/);
-  assert.match(storage, /\.\.\.catalogProperty/);
-  assert.match(storage, /\.\.\.storedProperty/);
-  assert.match(storage, /export type ProductStateLoadResult/);
-  assert.match(storage, /recoveredFromError: true/);
-  assert.match(storage, /本地记录无法读取，已恢复设备内置房源。/);
+  assert.doesNotMatch(storage, /\.\.\.storedProperty/);
+  assert.match(recovery, /本地记录无法读取，已恢复设备内置房源。/);
+  assert.match(recovery, /部分本地记录已损坏，已保留可恢复内容。/);
   assert.match(store, /hydrationError: loadResult\.message/);
 });
 

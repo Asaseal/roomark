@@ -22,6 +22,7 @@ const renderStatuses: NonNullable<PropertyRecord["renderStatus"]>[] = [
   "saved",
   "failed"
 ];
+const unsafeDictionaryIds = new Set(["__proto__", "constructor", "prototype"]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -37,6 +38,10 @@ function isBoundedString(value: unknown, maximum = 1_000): value is string {
 
 function isOptionalString(value: unknown, maximum = 2_048): value is string | undefined {
   return value === undefined || (typeof value === "string" && value.length <= maximum);
+}
+
+function isSafeIdentifier(value: unknown): value is string {
+  return isBoundedString(value, 128) && !unsafeDictionaryIds.has(value);
 }
 
 function isTimestamp(value: unknown): value is string {
@@ -106,7 +111,7 @@ function isPropertyRecord(value: unknown, expectedId: string): value is Property
   if (
     !isRecord(value) ||
     value.id !== expectedId ||
-    !isBoundedString(value.id, 128) ||
+    !isSafeIdentifier(value.id) ||
     !isBoundedString(value.title) ||
     !isRoomMesh(value.roomMesh, expectedId) ||
     !isBoundedString(value.monthlyRent) ||
@@ -326,8 +331,8 @@ export function recoverProductState(
   const seenComparisonIds = new Set<string>();
   for (const candidate of value.comparisonIds) {
     if (
-      !isBoundedString(candidate, 128) ||
-      !propertiesById[candidate] ||
+      !isSafeIdentifier(candidate) ||
+      !Object.prototype.hasOwnProperty.call(propertiesById, candidate) ||
       seenComparisonIds.has(candidate)
     ) {
       recovered = true;
@@ -340,8 +345,11 @@ export function recoverProductState(
   let selectedPropertyId: string | undefined;
   if (value.selectedPropertyId !== undefined) {
     if (
-      isBoundedString(value.selectedPropertyId, 128) &&
-      propertiesById[value.selectedPropertyId]
+      isSafeIdentifier(value.selectedPropertyId) &&
+      Object.prototype.hasOwnProperty.call(
+        propertiesById,
+        value.selectedPropertyId
+      )
     ) {
       selectedPropertyId = value.selectedPropertyId;
     } else {

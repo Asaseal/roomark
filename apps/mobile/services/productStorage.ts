@@ -1,53 +1,19 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { propertyCatalog } from "../data/propertyCatalog";
 import type { ProductState } from "../types/productState";
-import type { PropertyRecord } from "../types/property";
+import {
+  createInitialProductStateFromCatalog,
+  recoverProductState,
+  type ProductStateLoadResult
+} from "./productStateRecovery";
 
 const productStorageKey = "roomark:mobile:product-state:v1";
+const MAX_PRODUCT_STATE_LENGTH = 2_000_000;
 
-export type ProductStateLoadResult = {
-  state: ProductState;
-  recoveredFromError: boolean;
-  message?: string;
-};
-
-function catalogById(): Record<string, PropertyRecord> {
-  return Object.fromEntries(propertyCatalog.map((property) => [property.id, property]));
-}
+export type { ProductStateLoadResult } from "./productStateRecovery";
 
 export function createInitialProductState(): ProductState {
-  return {
-    schemaVersion: 1,
-    propertiesById: catalogById(),
-    comparisonIds: propertyCatalog.map((property) => property.id),
-    updatedAt: new Date().toISOString()
-  };
-}
-
-export function mergeProductStateWithCatalog(storedState: ProductState): ProductState {
-  const mergedProperties = catalogById();
-
-  for (const [propertyId, storedProperty] of Object.entries(storedState.propertiesById ?? {})) {
-    const catalogProperty = mergedProperties[propertyId];
-    mergedProperties[propertyId] = catalogProperty
-      ? {
-          ...catalogProperty,
-          ...storedProperty,
-          roomMesh: {
-            ...catalogProperty.roomMesh,
-            ...storedProperty.roomMesh
-          }
-        }
-      : storedProperty;
-  }
-
-  return {
-    schemaVersion: 1,
-    propertiesById: mergedProperties,
-    comparisonIds: (storedState.comparisonIds ?? []).filter((id) => Boolean(mergedProperties[id])),
-    selectedPropertyId: mergedProperties[storedState.selectedPropertyId ?? ""] ? storedState.selectedPropertyId : undefined,
-    updatedAt: storedState.updatedAt || new Date().toISOString()
-  };
+  return createInitialProductStateFromCatalog(propertyCatalog);
 }
 
 export async function loadProductState(): Promise<ProductStateLoadResult> {
@@ -60,31 +26,13 @@ export async function loadProductState(): Promise<ProductStateLoadResult> {
       };
     }
 
-    const storedState = JSON.parse(storedValue) as ProductState;
-    if (
-      storedState.schemaVersion !== 1 ||
-      !storedState.propertiesById ||
-      typeof storedState.propertiesById !== "object" ||
-      Array.isArray(storedState.propertiesById) ||
-      !Array.isArray(storedState.comparisonIds)
-    ) {
-      return {
-        state: createInitialProductState(),
-        recoveredFromError: true,
-        message: "本地记录无法读取，已恢复设备内置房源。"
-      };
+    if (storedValue.length > MAX_PRODUCT_STATE_LENGTH) {
+      return recoverProductState(undefined, propertyCatalog);
     }
 
-    return {
-      state: mergeProductStateWithCatalog(storedState),
-      recoveredFromError: false
-    };
+    return recoverProductState(JSON.parse(storedValue) as unknown, propertyCatalog);
   } catch {
-    return {
-      state: createInitialProductState(),
-      recoveredFromError: true,
-      message: "本地记录无法读取，已恢复设备内置房源。"
-    };
+    return recoverProductState(undefined, propertyCatalog);
   }
 }
 
