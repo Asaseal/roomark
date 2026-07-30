@@ -1,5 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, BackHandler, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  AppState,
+  BackHandler,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from "react-native";
 import FurnitureDrawer from "../components/FurnitureDrawer";
 import FurnishWebView, { FurnishWebViewHandle } from "../components/FurnishWebView";
 import { createMockRenderPreview } from "../services/renderPreview";
@@ -28,6 +39,7 @@ export default function FurnishStudioScreen({ roomMesh, onBack, onProjectStatusC
   const exitingRef = useRef(false);
   const loadProject = useFurnishStore((state) => state.loadProject);
   const saveProject = useFurnishStore((state) => state.saveProject);
+  const setActiveProject = useFurnishStore((state) => state.setActiveProject);
   const activeProject = useFurnishStore((state) => state.activeProject);
   const loading = useFurnishStore((state) => state.loading);
   const saveError = useFurnishStore((state) => state.saveError);
@@ -94,6 +106,16 @@ export default function FurnishStudioScreen({ roomMesh, onBack, onProjectStatusC
     return true;
   }, [onProjectStatusChanged, saveProject]);
 
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextState) => {
+      if (nextState !== "active" && pendingProjectRef.current) {
+        void flushProjectSave();
+      }
+    });
+
+    return () => subscription.remove();
+  }, [flushProjectSave]);
+
   const handleSelectAsset = (asset: FurnitureAsset) => {
     if (!sceneReady) {
       return;
@@ -113,6 +135,7 @@ export default function FurnishStudioScreen({ roomMesh, onBack, onProjectStatusC
       const projectToSave = project.renderPreview || !activeProject?.renderPreview ? project : { ...project, renderPreview: activeProject.renderPreview };
       setStatusText(furnitureCount > 0 ? `已摆放 ${furnitureCount} 件家具` : "房间已清空");
       setSaveText("等待保存");
+      setActiveProject(projectToSave);
       pendingProjectRef.current = projectToSave;
       if (projectSaveTimerRef.current) {
         clearTimeout(projectSaveTimerRef.current);
@@ -121,7 +144,7 @@ export default function FurnishStudioScreen({ roomMesh, onBack, onProjectStatusC
         void flushProjectSave();
       }, 350);
     },
-    [activeProject?.renderPreview, flushProjectSave]
+    [activeProject?.renderPreview, flushProjectSave, setActiveProject]
   );
 
   const handleRetrySave = async () => {
