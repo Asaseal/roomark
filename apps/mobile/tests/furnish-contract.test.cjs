@@ -96,6 +96,15 @@ test("studio keeps failed layouts pending and only reports successful saves", ()
   assert.match(screen, /pendingProjectRef\.current = pendingProject/);
   assert.match(screen, /onProjectStatusChanged\(pendingProject\)/);
   assert.match(screen, /重试保存/);
+  assert.match(
+    screen,
+    /const retrySave = useFurnishStore\(\(state\) => state\.retrySave\)/
+  );
+  assert.match(
+    screen,
+    /if \(pendingProjectRef\.current\) \{\s*await flushProjectSave\(\);\s*return;/
+  );
+  assert.match(screen, /await retrySave\(roomMesh\.id\)/);
 });
 
 test("3D failure offers retry and return while scene actions stay disabled", () => {
