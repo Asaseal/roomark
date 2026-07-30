@@ -173,7 +173,9 @@ const pendingSave = useFurnishStore(
 );
 ```
 
-现有按钮、可见文案、无障碍标签、禁用状态和 `handleRetrySave` 保持不变。
+页面同时选择现有 `retrySave`。`handleRetrySave` 在当前页面仍持有 `pendingProjectRef` 时继续刷新该草稿；如果失败发生在页面卸载后、重新进入时本地引用已经不存在，则调用 `retrySave(roomMesh.id)` 保存 Store 中该房间的最新项目。这样重进后的错误提示仍有真实可用的重试动作。
+
+现有按钮、可见文案、无障碍标签和禁用状态保持不变。
 
 ## 并发不变量
 
@@ -216,6 +218,7 @@ const pendingSave = useFurnishStore(
 3. B 成功后，A 的错误仍保留，两个房间均不在途。
 4. A 重试成功后，只清除 A 的错误。
 5. 同一房间两次保存时，第一次完成后仍保持在途，第二次完成后才清除。
+6. 页面本地待保存引用不存在时，重试动作回退到 `retrySave(roomMesh.id)`。
 
 更新源码契约，固定：
 

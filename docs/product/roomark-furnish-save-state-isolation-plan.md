@@ -169,7 +169,23 @@ assert.match(
 );
 ```
 
-- [ ] **Step 5: 运行红灯测试**
+- [ ] **Step 5: 固定页面重进后的 Store 重试**
+
+在 `studio keeps failed layouts pending and only reports successful saves` 测试中增加：
+
+```js
+assert.match(
+  screen,
+  /const retrySave = useFurnishStore\(\(state\) => state\.retrySave\)/
+);
+assert.match(
+  screen,
+  /if \(pendingProjectRef\.current\) \{\s*await flushProjectSave\(\);\s*return;/
+);
+assert.match(screen, /await retrySave\(roomMesh\.id\)/);
+```
+
+- [ ] **Step 6: 运行红灯测试**
 
 Run:
 
@@ -184,7 +200,7 @@ Expected:
 - 契约测试因 Store 与页面仍使用全局字段而失败。
 - 原有加载隔离测试继续通过。
 
-- [ ] **Step 6: 提交红灯测试**
+- [ ] **Step 7: 提交红灯测试**
 
 ```powershell
 git add apps/mobile/tests/furnish-store-isolation.test.cjs apps/mobile/tests/furnish-contract.test.cjs
@@ -369,9 +385,45 @@ const pendingSave = useFurnishStore(
 );
 ```
 
-不修改按钮、可见文案、无障碍标签、禁用逻辑或 `handleRetrySave`。
+不修改按钮、可见文案、无障碍标签或禁用逻辑。
 
-- [ ] **Step 2: 运行专项测试**
+- [ ] **Step 2: 接入页面重进后的 Store 重试**
+
+选择现有 Store 动作：
+
+```ts
+const retrySave = useFurnishStore((state) => state.retrySave);
+```
+
+把 `handleRetrySave` 替换为：
+
+```ts
+const handleRetrySave = async () => {
+  if (pendingProjectRef.current) {
+    await flushProjectSave();
+    return;
+  }
+
+  setSaveText("正在保存…");
+  const persisted = await retrySave(roomMesh.id);
+  if (!persisted) {
+    setSaveText("保存失败，请重试");
+    return;
+  }
+
+  if (project) {
+    onProjectStatusChanged(project);
+  }
+  setSaveText(
+    `已保存 · ${new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit"
+    })}`
+  );
+};
+```
+
+- [ ] **Step 3: 运行专项测试**
 
 Run:
 
@@ -382,7 +434,7 @@ node --test tests/furnish-store-isolation.test.cjs tests/furnish-contract.test.c
 
 Expected: 全部通过。
 
-- [ ] **Step 3: 运行 TypeScript**
+- [ ] **Step 4: 运行 TypeScript**
 
 Run:
 
@@ -393,7 +445,7 @@ npm.cmd run typecheck
 
 Expected: exit code 0。
 
-- [ ] **Step 4: 提交 Store 与页面接入**
+- [ ] **Step 5: 提交 Store 与页面接入**
 
 ```powershell
 git add apps/mobile/stores/furnishStore.ts apps/mobile/screens/FurnishStudioScreen.tsx
