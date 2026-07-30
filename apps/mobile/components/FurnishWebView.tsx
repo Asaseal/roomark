@@ -35,6 +35,7 @@ const furnitureModelModules: Record<string, number> = {
 const furnishRuntimeModule = require("../assets/vendor/furnish-runtime.js.txt");
 
 const GLB_DATA_URI_PREFIX = "data:model/gltf-binary;base64,";
+const SCENE_LOAD_TIMEOUT_MS = 45000;
 
 type WebViewRenderProcessGoneEvent = NativeSyntheticEvent<{
   didCrash: boolean;
@@ -113,14 +114,19 @@ function FurnishWebViewInner(
     setLoadError(null);
     initSentRef.current = false;
     clearLoadTimeout();
+
+    if (!sceneHtml) {
+      return;
+    }
+
     loadTimeoutRef.current = setTimeout(() => {
       setLoadError("3D 场景加载较慢，请点击重试");
       onSceneReadyChanged(false);
       onSceneError("3D 场景加载较慢，可点击重试");
-    }, 12000);
+    }, SCENE_LOAD_TIMEOUT_MS);
 
     return clearLoadTimeout;
-  }, [clearLoadTimeout, onSceneError, onSceneReadyChanged, webViewKey]);
+  }, [clearLoadTimeout, onSceneError, onSceneReadyChanged, sceneHtml, webViewKey]);
 
   useEffect(() => {
     let mounted = true;

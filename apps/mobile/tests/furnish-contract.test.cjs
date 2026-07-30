@@ -163,3 +163,11 @@ test("Android WebView renderer exit recovers once before showing manual fallback
   assert.match(bridge, /3D 场景意外退出，正在恢复/);
   assert.match(bridge, /3D 场景连续恢复失败，请重试或返回房源详情/);
 });
+
+test("3D loading timeout starts after the local scene is ready to mount", () => {
+  const bridge = read(path.join("components", "FurnishWebView.tsx"));
+
+  assert.match(bridge, /const SCENE_LOAD_TIMEOUT_MS = 45000/);
+  assert.match(bridge, /if \(!sceneHtml\) \{\s*return;/);
+  assert.match(bridge, /}, \[clearLoadTimeout, onSceneError, onSceneReadyChanged, sceneHtml, webViewKey\]\);/);
+});

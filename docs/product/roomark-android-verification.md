@@ -1,6 +1,6 @@
 # Roomark Android 验证记录
 
-验证日期：2026-07-20（持续更新至 2026-07-29）
+验证日期：2026-07-20（持续更新至 2026-07-30）
 
 ## 构建身份
 
@@ -27,7 +27,7 @@
 
 ## 自动化验证
 
-- Mobile 合约测试：44 passed，0 failed。
+- Mobile 合约测试：45 passed，0 failed。
 - Android release 交付契约：12 passed，0 failed。
 - TypeScript：`tsc --noEmit` passed。
 - Expo 公共配置：passed。
@@ -61,7 +61,9 @@
 - 软装布局变化先同步为最新内存草稿，350ms 防抖仍只控制设备写入；WebView 重建不会回退到旧的 `activeProject`。
 - 应用离开前台时主动刷新待保存软装布局，失败后继续保留重试状态。
 - Android WebView renderer 退出后自动重建一次；连续退出停止自动循环并显示手动恢复入口。
-- 自动化契约与 TypeScript 已覆盖本轮代码增量；API 34 模拟器 renderer 终止和后台恢复结果在完成实际验收后记录。
+- 本地 3D 场景的加载超时从“组件打开即计时”改为“本地场景 HTML 已就绪后计时”，并将冷启动窗口调整为 45 秒，避免旧版 WebView 或刚启动的模拟器在 12 秒时被误判为失败。
+- API 34 模拟器实际终止 renderer 后，应用自动重建场景并恢复已保存沙发；在首次恢复尚未完成时再次终止 renderer，应用停止自动循环并展示“重试加载 / 返回房源详情”，手动重试后恢复成功。
+- 自动化契约与 TypeScript 已覆盖本轮代码增量；应用后台刷新待保存草稿仍由自动化契约覆盖，物理真机上的极限切后台时序保留为正式发布验收项。
 
 ## 生产发布整改
 
@@ -90,6 +92,11 @@
 | Android 系统返回键 | PASS | 详情、地图和 App 层级返回正常；已保存状态未丢失 |
 | 飞行模式本地流程 | PASS | 飞行模式下强制停止并重新启动，房源库和对比状态正常显示 |
 | GLB 缺失降级 | AUTOMATED PASS | 自动化合约覆盖占位内容与不崩溃行为；未破坏冻结包资产做破坏性设备测试 |
+| 当前 Debug 原生构建 | PASS | `app:assembleDebug` 与 `app:createBundleReleaseJsAndAssets` 成功；当前 Debug APK 安装到 API 34 模拟器 |
+| 本地 3D 冷启动 | PASS | 本地 Three.js 场景在延长后的 45 秒窗口内打开，没有再次出现 12 秒误报；已保存双人沙发恢复 |
+| WebView renderer 单次退出 | PASS | 终止 renderer PID 6951 后生成新 renderer PID 7085，场景自动恢复且布局未丢失 |
+| WebView renderer 连续退出 | PASS | 首次恢复期间再次终止 PID 7449，应用停止自动重启并显示手动重试与返回入口 |
+| renderer 手动重试 | PASS | 连续退出后的“重试加载”重新打开场景，并恢复已保存软装布局 |
 
 ## 后续发布门槛：物理真机验收
 
