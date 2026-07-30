@@ -315,10 +315,22 @@ function FurnishWebViewInner(
             <Text style={styles.loadingText}>{loadError ?? "正在从应用内加载 3D 运行时"}</Text>
             {loadError ? (
               <View style={styles.errorActions}>
-                <TouchableOpacity accessibilityRole="button" style={styles.retryButton} activeOpacity={0.86} onPress={retryScene}>
+                <TouchableOpacity
+                  accessibilityLabel="重新加载 3D 场景"
+                  accessibilityRole="button"
+                  style={styles.retryButton}
+                  activeOpacity={0.86}
+                  onPress={retryScene}
+                >
                   <Text style={styles.retryButtonText}>重试加载</Text>
                 </TouchableOpacity>
-                <TouchableOpacity accessibilityRole="button" style={styles.exitButton} activeOpacity={0.86} onPress={onExit}>
+                <TouchableOpacity
+                  accessibilityLabel="退出 3D 场景并返回房源详情"
+                  accessibilityRole="button"
+                  style={styles.exitButton}
+                  activeOpacity={0.86}
+                  onPress={onExit}
+                >
                   <Text style={styles.exitButtonText}>返回房源详情</Text>
                 </TouchableOpacity>
               </View>

@@ -37,7 +37,15 @@ export default function FurnitureDrawer({ open, onSelectAsset }: FurnitureDrawer
           <View key={category} style={styles.categoryBlock}>
             <Text style={styles.categoryTitle}>{furnitureCategoryLabels[category as FurnitureAsset["category"]]}</Text>
             {assets.map((asset) => (
-              <TouchableOpacity key={asset.id} activeOpacity={0.82} style={styles.assetRow} onPress={() => onSelectAsset(asset)}>
+              <TouchableOpacity
+                key={asset.id}
+                accessibilityLabel={`放入 ${asset.name}，${asset.description}`}
+                accessibilityHint="添加到当前 3D 房间"
+                accessibilityRole="button"
+                activeOpacity={0.82}
+                style={styles.assetRow}
+                onPress={() => onSelectAsset(asset)}
+              >
                 <View style={styles.assetIcon}>
                   <Text style={styles.assetIconText}>{asset.name.slice(0, 1)}</Text>
                 </View>

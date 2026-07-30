@@ -303,7 +303,13 @@ export default function FurnishStudioScreen({ roomMesh, onBack, onProjectStatusC
         />
 
         <View style={styles.topBar}>
-          <TouchableOpacity style={styles.iconButton} activeOpacity={0.86} onPress={handleBack}>
+          <TouchableOpacity
+            accessibilityLabel="保存软装布局并返回房源详情"
+            accessibilityRole="button"
+            style={styles.iconButton}
+            activeOpacity={0.86}
+            onPress={handleBack}
+          >
             <Text style={styles.iconButtonText}>‹</Text>
           </TouchableOpacity>
           <View style={styles.titleBlock}>
@@ -312,7 +318,7 @@ export default function FurnishStudioScreen({ roomMesh, onBack, onProjectStatusC
             <Text style={styles.roomSize}>{formatRoomSize(roomMesh)}</Text>
           </View>
           <TouchableOpacity
-            accessibilityLabel="打开家具列表"
+            accessibilityLabel={drawerOpen ? "关闭家具列表" : "打开家具列表"}
             accessibilityRole="button"
             accessibilityState={{ disabled: !sceneReady }}
             disabled={!sceneReady}
@@ -361,6 +367,8 @@ export default function FurnishStudioScreen({ roomMesh, onBack, onProjectStatusC
 
         <View style={styles.aiActionBar}>
           <TouchableOpacity
+            accessibilityLabel="根据当前布局生成 Mock 概念图"
+            accessibilityRole="button"
             accessibilityState={{ disabled: !sceneReady }}
             disabled={!sceneReady}
             style={[styles.aiButton, !sceneReady ? styles.actionDisabled : null]}
@@ -374,6 +382,8 @@ export default function FurnishStudioScreen({ roomMesh, onBack, onProjectStatusC
 
         <View style={styles.bottomActions}>
           <TouchableOpacity
+            accessibilityLabel="锁定当前选中的家具"
+            accessibilityRole="button"
             accessibilityState={{ disabled: !sceneReady }}
             disabled={!sceneReady}
             style={[styles.secondaryButton, styles.lockButton, !sceneReady ? styles.actionDisabled : null]}
@@ -383,6 +393,8 @@ export default function FurnishStudioScreen({ roomMesh, onBack, onProjectStatusC
             <Text style={[styles.secondaryButtonText, styles.lockButtonText]}>锁定家具</Text>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityLabel="重置 3D 场景视角"
+            accessibilityRole="button"
             accessibilityState={{ disabled: !sceneReady }}
             disabled={!sceneReady}
             style={[styles.secondaryButton, styles.resetButton, !sceneReady ? styles.actionDisabled : null]}
@@ -392,6 +404,8 @@ export default function FurnishStudioScreen({ roomMesh, onBack, onProjectStatusC
             <Text style={styles.secondaryButtonText}>重置视角</Text>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityLabel="删除当前选中的家具"
+            accessibilityRole="button"
             accessibilityState={{ disabled: !sceneReady }}
             disabled={!sceneReady}
             style={[styles.secondaryButton, styles.deleteButton, !sceneReady ? styles.actionDisabled : null]}
@@ -425,7 +439,13 @@ function RenderPreviewModal({ visible, loading, stepIndex, preview, onClose, onS
               <Text style={styles.renderKicker}>Mock 效果图预览</Text>
               <Text style={styles.renderTitle}>生成概念效果预览</Text>
             </View>
-            <TouchableOpacity style={styles.closeButton} activeOpacity={0.82} onPress={onClose}>
+            <TouchableOpacity
+              accessibilityLabel="关闭 Mock 概念图预览"
+              accessibilityRole="button"
+              style={styles.closeButton}
+              activeOpacity={0.82}
+              onPress={onClose}
+            >
               <Text style={styles.closeButtonText}>×</Text>
             </TouchableOpacity>
           </View>
@@ -492,7 +512,13 @@ function RenderPreviewModal({ visible, loading, stepIndex, preview, onClose, onS
               <Text style={styles.summaryTitle}>生成提示词</Text>
               <Text style={styles.promptText}>{preview?.renderPrompt}</Text>
 
-              <TouchableOpacity style={styles.saveRenderButton} activeOpacity={0.88} onPress={onSave}>
+              <TouchableOpacity
+                accessibilityLabel="保存 Mock 概念图到房源库"
+                accessibilityRole="button"
+                style={styles.saveRenderButton}
+                activeOpacity={0.88}
+                onPress={onSave}
+              >
                 <Text style={styles.saveRenderButtonText}>保存 Mock 效果图</Text>
               </TouchableOpacity>
             </ScrollView>
