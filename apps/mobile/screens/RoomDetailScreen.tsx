@@ -47,7 +47,7 @@ export default function RoomDetailScreen({ room, project, profile, onBack, onSta
   const furnitureCount = project?.placedFurniture.length ?? 0;
   const hasFurnishLayout = furnitureCount > 0;
   const hasRenderPreview = Boolean(project?.renderPreview);
-  const aiTime = formatClockTime(project?.renderPreview?.savedAt ?? project?.renderPreview?.createdAt);
+  const previewTime = formatClockTime(project?.renderPreview?.savedAt ?? project?.renderPreview?.createdAt);
   const lastSavedTime = formatClockTime(project?.renderPreview?.savedAt ?? project?.updatedAt);
   const issueCount = profile.inspection.filter((item) => item.status !== "normal").length;
 
@@ -108,7 +108,7 @@ export default function RoomDetailScreen({ room, project, profile, onBack, onSta
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>模拟与效果图</Text>
+          <Text style={styles.sectionTitle}>模拟与概念图</Text>
           <View style={styles.statusRow}>
             <View style={styles.statusCard}>
               <Text style={styles.statusLabel}>软装模拟</Text>
@@ -116,9 +116,9 @@ export default function RoomDetailScreen({ room, project, profile, onBack, onSta
               <Text style={styles.statusMeta}>已摆放 {furnitureCount} 件家具</Text>
             </View>
             <View style={styles.statusCard}>
-              <Text style={styles.statusLabel}>AI 效果图</Text>
-              <Text style={styles.statusValue}>{hasRenderPreview ? "已生成" : "未生成"}</Text>
-              <Text style={styles.statusMeta}>{hasRenderPreview ? `最近生成 ${aiTime}` : "进入软装后生成"}</Text>
+              <Text style={styles.statusLabel}>Mock 概念图</Text>
+              <Text style={styles.statusValue}>{hasRenderPreview ? "已保存" : "未创建"}</Text>
+              <Text style={styles.statusMeta}>{hasRenderPreview ? `最近保存 ${previewTime}` : "进入软装后创建"}</Text>
             </View>
             <View style={styles.statusCard}>
               <Text style={styles.statusLabel}>最近保存</Text>
@@ -129,13 +129,13 @@ export default function RoomDetailScreen({ room, project, profile, onBack, onSta
 
           <TouchableOpacity style={styles.primaryButton} activeOpacity={0.88} onPress={onStartFurnish}>
             <Text style={styles.primaryButtonText}>{hasFurnishLayout || hasRenderPreview ? "继续模拟软装" : "开始模拟软装"}</Text>
-            <Text style={styles.primaryButtonSubText}>验证家具摆放，并生成效果图</Text>
+            <Text style={styles.primaryButtonSubText}>验证家具摆放，并保存概念预览</Text>
           </TouchableOpacity>
 
           <View style={styles.aiStateCard}>
             <View>
-              <Text style={styles.aiStateTitle}>查看 AI 效果图状态</Text>
-              <Text style={styles.aiStateText}>{hasRenderPreview ? `已保存效果图，可继续调整 · ${aiTime}` : "摆好家具后，可生成一张室内效果图。"}</Text>
+              <Text style={styles.aiStateTitle}>查看 Mock 概念图状态</Text>
+              <Text style={styles.aiStateText}>{hasRenderPreview ? `Mock 概念图已保存，可继续调整 · ${previewTime}` : "摆好家具后，可创建本地概念预览。"}</Text>
             </View>
             {hasRenderPreview ? (
               <View style={styles.renderPreviewMini}>
@@ -146,7 +146,7 @@ export default function RoomDetailScreen({ room, project, profile, onBack, onSta
                 </View>
               </View>
             ) : null}
-            <Text style={[styles.aiStateBadge, hasRenderPreview ? styles.aiStateBadgeActive : null]}>{hasRenderPreview ? "已完成" : "待生成"}</Text>
+            <Text style={[styles.aiStateBadge, hasRenderPreview ? styles.aiStateBadgeActive : null]}>{hasRenderPreview ? "已保存" : "待创建"}</Text>
           </View>
         </View>
 
@@ -173,8 +173,8 @@ export default function RoomDetailScreen({ room, project, profile, onBack, onSta
               <Text style={styles.evidenceLabel}>高风险项</Text>
             </View>
             <View style={styles.evidenceCardWide}>
-              <Text style={styles.evidenceLabel}>可生成看房记录单</Text>
-              <Text style={styles.evidenceText}>当前为 mock 预览：已整理风险标签、现场备注、软装状态和效果图状态，后续可导出 PDF 证据包。</Text>
+              <Text style={styles.evidenceLabel}>看房记录摘要</Text>
+              <Text style={styles.evidenceText}>本地记录预览：已整理风险标签、现场备注、软装状态和 Mock 概念图状态。</Text>
             </View>
           </View>
         </View>
