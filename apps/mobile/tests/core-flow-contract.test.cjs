@@ -44,3 +44,14 @@ test("storage recovery feedback is accessible and announces state changes", () =
   assert.match(library, /accessibilityState=\{\{ disabled: pendingPersistence \}\}/);
   assert.match(library, /accessibilityLabel="稍后处理保存失败提示"/);
 });
+
+test("room detail describes the local concept preview without future promises", () => {
+  const detail = read(path.join("screens", "RoomDetailScreen.tsx"));
+
+  assert.match(detail, /Mock 概念图/);
+  assert.match(detail, /本地概念预览/);
+  assert.doesNotMatch(detail, /AI 效果图/);
+  assert.doesNotMatch(detail, /生成效果图/);
+  assert.doesNotMatch(detail, /生成一张室内效果图/);
+  assert.doesNotMatch(detail, /导出 PDF/);
+});
