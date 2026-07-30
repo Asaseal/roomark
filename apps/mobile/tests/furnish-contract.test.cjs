@@ -136,9 +136,9 @@ test("3D furnishing runtime is bundled for first-run offline use", () => {
   assert.match(scene, /getFurnishSceneHtml\(runtimeSource: string\)/);
   assert.match(scene, /escapeInlineScript\(runtimeSource\)/);
   assert.match(bridge, /furnish-runtime\.js\.txt/);
-  assert.match(bridge, /Asset\.loadAsync\(furnishRuntimeModule\)/);
-  assert.match(bridge, /FileSystem\.readAsStringAsync\(readableRuntimeUri\)/);
-  assert.match(bridge, /getFurnishSceneHtml\(runtimeSource\)/);
+  assert.match(bridge, /loadFurnishSceneHtml/);
+  assert.match(bridge, /resolveFurnishModelUris/);
+  assert.doesNotMatch(bridge, /FileSystem\.readAsStringAsync/);
   assert.match(metro, /"txt"/);
   assert.equal(packageJson.devDependencies.three, "0.132.2");
   assert.match(packageJson.scripts["build:furnish-runtime"], /build-furnish-runtime\.cjs/);
