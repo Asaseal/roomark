@@ -159,15 +159,24 @@ test("studio keeps the latest layout in memory and flushes it when the app backg
   const screen = read(path.join("screens", "FurnishStudioScreen.tsx"));
 
   assert.match(screen, /AppState/);
-  assert.match(screen, /const setActiveProject = useFurnishStore/);
-  assert.match(screen, /setActiveProject\(project\)/);
+  assert.match(screen, /const setProject = useFurnishStore/);
+  assert.match(screen, /setProject\(project\)/);
   assert.match(screen, /AppState\.addEventListener\("change"/);
   assert.match(screen, /nextState !== "active"/);
   assert.match(screen, /void flushProjectSave\(\)/);
 
-  const memoryDraftIndex = screen.indexOf("setActiveProject(project)");
+  const memoryDraftIndex = screen.indexOf("setProject(project)");
   const pendingDraftIndex = screen.indexOf("pendingProjectRef.current = project");
   assert.ok(memoryDraftIndex >= 0 && memoryDraftIndex < pendingDraftIndex);
+});
+
+test("studio selects furnishing project and loading state by room", () => {
+  const screen = read(path.join("screens", "FurnishStudioScreen.tsx"));
+
+  assert.match(screen, /state\.projectsByRoomId\[roomMesh\.id\]/);
+  assert.match(screen, /state\.loadingRoomIds\[roomMesh\.id\] \?\? false/);
+  assert.doesNotMatch(screen, /state\.activeProject/);
+  assert.doesNotMatch(screen, /state\.loading\)/);
 });
 
 test("Android WebView renderer exit recovers once before showing manual fallback", () => {
@@ -214,5 +223,5 @@ test("WebView trust boundary validates messages and uses minimum capabilities", 
     screen,
     /project\.renderPreview \|\| !activeProject\?\.renderPreview/
   );
-  assert.match(screen, /setActiveProject\(project\)/);
+  assert.match(screen, /setProject\(project\)/);
 });
