@@ -39,6 +39,7 @@ export default function FurnishStudioScreen({ roomMesh, onBack, onProjectStatusC
   const exitingRef = useRef(false);
   const loadProject = useFurnishStore((state) => state.loadProject);
   const saveProject = useFurnishStore((state) => state.saveProject);
+  const retrySave = useFurnishStore((state) => state.retrySave);
   const setProject = useFurnishStore((state) => state.setProject);
   const project = useFurnishStore((state) => state.projectsByRoomId[roomMesh.id]);
   const loading = useFurnishStore((state) => state.loadingRoomIds[roomMesh.id] ?? false);
@@ -154,7 +155,27 @@ export default function FurnishStudioScreen({ roomMesh, onBack, onProjectStatusC
   );
 
   const handleRetrySave = async () => {
-    await flushProjectSave();
+    if (pendingProjectRef.current) {
+      await flushProjectSave();
+      return;
+    }
+
+    setSaveText("正在保存…");
+    const persisted = await retrySave(roomMesh.id);
+    if (!persisted) {
+      setSaveText("保存失败，请重试");
+      return;
+    }
+
+    if (project) {
+      onProjectStatusChanged(project);
+    }
+    setSaveText(
+      `已保存 · ${new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit"
+      })}`
+    );
   };
 
   const handleBack = useCallback(async () => {
