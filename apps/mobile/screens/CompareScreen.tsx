@@ -16,7 +16,12 @@ export default function CompareScreen({ properties, comparisonIds, onBack, onOpe
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
-        <TouchableOpacity style={styles.backButton} onPress={onBack}>
+        <TouchableOpacity
+          accessibilityLabel="返回房源库"
+          accessibilityRole="button"
+          style={styles.backButton}
+          onPress={onBack}
+        >
           <Text style={styles.backText}>返回 Library</Text>
         </TouchableOpacity>
         <Text style={styles.eyebrow}>房源对比</Text>
@@ -30,7 +35,14 @@ export default function CompareScreen({ properties, comparisonIds, onBack, onOpe
         ) : null}
 
         {comparedProperties.map((property) => (
-          <TouchableOpacity key={property.id} style={styles.card} onPress={() => onOpenDetail(property)}>
+          <TouchableOpacity
+            key={property.id}
+            accessibilityLabel={`${property.title}，${property.monthlyRent}，入住 ${property.totalMoveInCost}，通勤 ${property.commuteTime}，高风险 ${property.highRiskCount} 项`}
+            accessibilityHint={`打开 ${property.title} 房源详情`}
+            accessibilityRole="button"
+            style={styles.card}
+            onPress={() => onOpenDetail(property)}
+          >
             <View style={styles.cardHeader}>
               <Text style={styles.cardTitle}>{property.title}</Text>
               <Text style={styles.tag}>{property.recommendationTag}</Text>

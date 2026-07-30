@@ -79,13 +79,28 @@ export default function LibraryScreen({
         ) : null}
 
         <View style={styles.actionRow}>
-          <TouchableOpacity style={styles.primaryAction} onPress={onOpenScan}>
+          <TouchableOpacity
+            accessibilityLabel="创建模拟扫描记录"
+            accessibilityRole="button"
+            style={styles.primaryAction}
+            onPress={onOpenScan}
+          >
             <Text style={styles.primaryActionText}>模拟扫描</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.secondaryAction} onPress={onOpenMap}>
+          <TouchableOpacity
+            accessibilityLabel="打开看房地图"
+            accessibilityRole="button"
+            style={styles.secondaryAction}
+            onPress={onOpenMap}
+          >
             <Text style={styles.secondaryActionText}>看房地图</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.secondaryAction} onPress={onOpenCompare}>
+          <TouchableOpacity
+            accessibilityLabel={`打开房源对比，已选择 ${comparisonIds.length} 套`}
+            accessibilityRole="button"
+            style={styles.secondaryAction}
+            onPress={onOpenCompare}
+          >
             <Text style={styles.secondaryActionText}>对比 {comparisonIds.length}</Text>
           </TouchableOpacity>
         </View>
@@ -105,7 +120,13 @@ export default function LibraryScreen({
 
           return (
             <View key={property.id} style={styles.propertyCard}>
-              <TouchableOpacity style={styles.cardMain} onPress={() => onOpenDetail(property)}>
+              <TouchableOpacity
+                accessibilityLabel={`${property.title}，${property.riskSummary}，${property.monthlyRent}，通勤 ${property.commuteTime}`}
+                accessibilityHint="打开房源详情"
+                accessibilityRole="button"
+                style={styles.cardMain}
+                onPress={() => onOpenDetail(property)}
+              >
                 <View style={styles.cardTop}>
                   <Text style={styles.cardTitle}>{property.title}</Text>
                   <Text style={[styles.riskBadge, property.highRiskCount > 0 ? styles.riskBadgeHigh : null]}>
@@ -121,10 +142,21 @@ export default function LibraryScreen({
                 <Text style={styles.decision}>{property.decisionSummary}</Text>
               </TouchableOpacity>
               <View style={styles.cardActions}>
-                <TouchableOpacity style={styles.cardButton} onPress={() => onToggleComparison(property.id)}>
+                <TouchableOpacity
+                  accessibilityLabel={`${selectedForComparison ? "移出" : "加入"}${property.title}房源对比`}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: selectedForComparison }}
+                  style={styles.cardButton}
+                  onPress={() => onToggleComparison(property.id)}
+                >
                   <Text style={styles.cardButtonText}>{selectedForComparison ? "移出对比" : "加入对比"}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.cardButtonDark} onPress={() => onStartFurnish(property)}>
+                <TouchableOpacity
+                  accessibilityLabel={`${furnitureCount > 0 ? "继续" : "开始"}${property.title}模拟软装`}
+                  accessibilityRole="button"
+                  style={styles.cardButtonDark}
+                  onPress={() => onStartFurnish(property)}
+                >
                   <Text style={styles.cardButtonDarkText}>{furnitureCount > 0 ? "继续软装" : "开始软装"}</Text>
                 </TouchableOpacity>
               </View>

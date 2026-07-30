@@ -54,7 +54,13 @@ export default function RoomDetailScreen({ room, project, profile, onBack, onSta
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <TouchableOpacity style={styles.backButton} activeOpacity={0.84} onPress={onBack}>
+        <TouchableOpacity
+          accessibilityLabel="返回房源库"
+          accessibilityRole="button"
+          style={styles.backButton}
+          activeOpacity={0.84}
+          onPress={onBack}
+        >
           <Text style={styles.backButtonText}>返回 Library</Text>
         </TouchableOpacity>
 
@@ -127,7 +133,13 @@ export default function RoomDetailScreen({ room, project, profile, onBack, onSta
             </View>
           </View>
 
-          <TouchableOpacity style={styles.primaryButton} activeOpacity={0.88} onPress={onStartFurnish}>
+          <TouchableOpacity
+            accessibilityLabel={`${hasFurnishLayout || hasRenderPreview ? "继续" : "开始"}${room.name}模拟软装`}
+            accessibilityRole="button"
+            style={styles.primaryButton}
+            activeOpacity={0.88}
+            onPress={onStartFurnish}
+          >
             <Text style={styles.primaryButtonText}>{hasFurnishLayout || hasRenderPreview ? "继续模拟软装" : "开始模拟软装"}</Text>
             <Text style={styles.primaryButtonSubText}>验证家具摆放，并保存概念预览</Text>
           </TouchableOpacity>
