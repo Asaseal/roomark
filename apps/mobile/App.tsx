@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BackHandler, SafeAreaView, StatusBar, StyleSheet, Text } from "react-native";
 import { propertyCatalog } from "./data/propertyCatalog";
 import type { ProductScreen } from "./navigation/productScreens";
@@ -16,6 +16,7 @@ export default function App() {
   const [selectedRoom, setSelectedRoom] = useState<RoomMesh | null>(null);
   const [studioRoom, setStudioRoom] = useState<RoomMesh | null>(null);
   const [activeScreen, setActiveScreen] = useState<ProductScreen>("library");
+  const furnishProjectRequestsRef = useRef(new Set<string>());
   const loadProject = useFurnishStore((state) => state.loadProject);
   const projectsByRoomId = useFurnishStore((state) => state.projectsByRoomId);
   const hydrated = useProductStore((state) => state.hydrated);
@@ -39,9 +40,17 @@ export default function App() {
 
   useEffect(() => {
     properties.forEach((property) => {
-      void loadProject(property.roomMesh);
+      const roomId = property.roomMesh.id;
+      if (projectsByRoomId[roomId] || furnishProjectRequestsRef.current.has(roomId)) {
+        return;
+      }
+
+      furnishProjectRequestsRef.current.add(roomId);
+      void loadProject(property.roomMesh).finally(() => {
+        furnishProjectRequestsRef.current.delete(roomId);
+      });
     });
-  }, [loadProject, propertiesById]);
+  }, [loadProject, projectsByRoomId, propertiesById]);
 
   useEffect(() => {
     const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
