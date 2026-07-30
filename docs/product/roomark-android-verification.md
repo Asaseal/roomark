@@ -27,7 +27,7 @@
 
 ## 自动化验证
 
-- Mobile 合约测试：42 passed，0 failed。
+- Mobile 合约测试：44 passed，0 failed。
 - Android release 交付契约：12 passed，0 failed。
 - TypeScript：`tsc --noEmit` passed。
 - Expo 公共配置：passed。
@@ -55,6 +55,13 @@
 - WebView 打开前通过 Expo Asset 和 FileSystem 读取本地运行时；读取失败时保留重试与返回入口。
 - 生成脚本、固定依赖版本、MIT 许可证副本和自动化契约共同保证运行时可复现且不会退回 CDN。
 - 自动化契约、TypeScript 与 Android 原生构建已覆盖该增量；目标实体手机的首次启动飞行模式复测仍保留为发布门槛。
+
+2026-07-30 继续补齐现有软装流程的生命周期恢复：
+
+- 软装布局变化先同步为最新内存草稿，350ms 防抖仍只控制设备写入；WebView 重建不会回退到旧的 `activeProject`。
+- 应用离开前台时主动刷新待保存软装布局，失败后继续保留重试状态。
+- Android WebView renderer 退出后自动重建一次；连续退出停止自动循环并显示手动恢复入口。
+- 自动化契约与 TypeScript 已覆盖本轮代码增量；API 34 模拟器 renderer 终止和后台恢复结果在完成实际验收后记录。
 
 ## 生产发布整改
 

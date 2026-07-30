@@ -69,6 +69,8 @@ cd apps/mobile/android
 
 核心流程不依赖账号、云同步或后端连接。Three.js、OrbitControls、GLTFLoader 与 GLB 模型均随应用打包，首次打开 3D 软装不依赖 CDN；GLB 无法读取时，场景使用占位模型并提供重试，不删除已保存布局。
 
+软装布局变化会先进入当前会话的内存草稿，再通过防抖队列写入设备；应用切到后台时会主动刷新待保存布局。Android WebView renderer 被系统回收或崩溃后自动恢复一次，连续失败时停止循环并提供手动重试和返回入口。
+
 更新内置 3D 运行时后，运行 `npm.cmd run build:furnish-runtime`，并同时提交 `assets/vendor/furnish-runtime.js.txt` 与 `assets/vendor/three-LICENSE.txt`。生成脚本固定使用 `package.json` 中的 Three.js 版本，确保本地构建和 CI 可复现。
 
 ## 当前边界
