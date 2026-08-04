@@ -203,11 +203,17 @@ test("save failure and pending state stay isolated by room", async () => {
   });
 
   await Promise.resolve();
-  assert.equal(pendingSaves.length, 1);
-  assert.equal(pendingSaves[0].project.roomId, studioRoom.id);
-  pendingSaves[0].reject(new Error("studio write failed"));
+  assert.equal(pendingSaves.length, 2);
+  const studioWrite = pendingSaves.find(
+    ({ project }) => project.roomId === studioRoom.id
+  );
+  const backgroundWrite = pendingSaves.find(
+    ({ project }) => project.roomId === backgroundRoom.id
+  );
+  assert.ok(studioWrite);
+  assert.ok(backgroundWrite);
+  studioWrite.reject(new Error("studio write failed"));
   assert.equal(await studioSave, false);
-  await Promise.resolve();
 
   assert.deepEqual(store.getState().saveErrorsByRoomId, {
     [studioRoom.id]: "软装布局尚未写入设备，请重试。"
@@ -215,10 +221,8 @@ test("save failure and pending state stay isolated by room", async () => {
   assert.deepEqual(store.getState().pendingSaveRoomIds, {
     [backgroundRoom.id]: true
   });
-  assert.equal(pendingSaves.length, 2);
-  assert.equal(pendingSaves[1].project.roomId, backgroundRoom.id);
 
-  pendingSaves[1].resolve();
+  backgroundWrite.resolve();
   assert.equal(await backgroundSave, true);
   assert.deepEqual(store.getState().saveErrorsByRoomId, {
     [studioRoom.id]: "软装布局尚未写入设备，请重试。"

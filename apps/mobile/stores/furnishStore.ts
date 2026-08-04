@@ -16,7 +16,7 @@ type FurnishState = {
   hasProjectFurniture: (roomId: string) => boolean;
 };
 
-let furnishPersistenceQueue = Promise.resolve();
+const furnishPersistenceQueues = new Map<string, Promise<void>>();
 const furnishProjectLoads = new Map<string, Promise<FurnishProject>>();
 const pendingSaveCountsByRoomId = new Map<string, number>();
 
@@ -41,9 +41,19 @@ function decrementPendingSaveCount(roomId: string): number {
   return nextCount;
 }
 
-function enqueueFurnishPersistence(operation: () => Promise<void>): Promise<void> {
-  const queuedWrite = furnishPersistenceQueue.then(operation, operation);
-  furnishPersistenceQueue = queuedWrite.then(() => undefined, () => undefined);
+function enqueueFurnishPersistence(
+  roomId: string,
+  operation: () => Promise<void>
+): Promise<void> {
+  const previousWrite = furnishPersistenceQueues.get(roomId) ?? Promise.resolve();
+  const queuedWrite = previousWrite.then(operation, operation);
+  const queueTail = queuedWrite.then(() => undefined, () => undefined);
+  furnishPersistenceQueues.set(roomId, queueTail);
+  void queueTail.then(() => {
+    if (furnishPersistenceQueues.get(roomId) === queueTail) {
+      furnishPersistenceQueues.delete(roomId);
+    }
+  });
   return queuedWrite;
 }
 
@@ -144,7 +154,10 @@ export const useFurnishStore = create<FurnishState>((set, get) => ({
       }
     }));
     try {
-      await enqueueFurnishPersistence(() => saveFurnishProject(nextProject));
+      await enqueueFurnishPersistence(
+        nextProject.roomId,
+        () => saveFurnishProject(nextProject)
+      );
       set((state) => {
         const nextWarnings = { ...state.recoveryWarningsByRoomId };
         const nextSaveErrors = { ...state.saveErrorsByRoomId };
