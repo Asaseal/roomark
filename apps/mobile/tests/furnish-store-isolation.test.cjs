@@ -239,6 +239,36 @@ test("save failure and pending state stay isolated by room", async () => {
   assert.deepEqual(store.getState().pendingSaveRoomIds, {});
 });
 
+test("a pending write in one room does not block another room", async () => {
+  const { store, pendingSaves } = loadStore();
+  const studioSave = store.getState().saveProject(createProject(studioRoom));
+  const backgroundSave = store
+    .getState()
+    .saveProject(createProject(backgroundRoom));
+
+  await Promise.resolve();
+
+  assert.equal(pendingSaves.length, 2);
+  const studioWrite = pendingSaves.find(
+    ({ project }) => project.roomId === studioRoom.id
+  );
+  const backgroundWrite = pendingSaves.find(
+    ({ project }) => project.roomId === backgroundRoom.id
+  );
+  assert.ok(studioWrite);
+  assert.ok(backgroundWrite);
+
+  backgroundWrite.resolve();
+  assert.equal(await backgroundSave, true);
+  assert.deepEqual(store.getState().pendingSaveRoomIds, {
+    [studioRoom.id]: true
+  });
+
+  studioWrite.resolve();
+  assert.equal(await studioSave, true);
+  assert.deepEqual(store.getState().pendingSaveRoomIds, {});
+});
+
 test("one room remains pending until every queued save settles", async () => {
   const { store, pendingSaves } = loadStore();
   const firstSave = store.getState().saveProject(createProject(studioRoom));
