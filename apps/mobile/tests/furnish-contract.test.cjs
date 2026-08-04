@@ -35,6 +35,26 @@ test("stored furnishing projects use recovery results before restore", () => {
   assert.match(screen, /accessibilityLiveRegion="polite"/);
 });
 
+test("studio blocks editing when the device cannot read a furnishing record", () => {
+  const screen = read(path.join("screens", "FurnishStudioScreen.tsx"));
+
+  assert.match(
+    screen,
+    /state\.loadErrorsByRoomId\[roomMesh\.id\]/
+  );
+  assert.match(screen, /if \(loadError\)/);
+  assert.match(screen, /软装记录暂时无法读取/);
+  assert.match(screen, /设备中的原布局尚未被覆盖/);
+  assert.match(screen, /重试读取/);
+  assert.match(screen, /void loadProject\(roomMesh\)/);
+  assert.match(screen, /返回房源库/);
+  assert.match(screen, /accessibilityState=\{\{ disabled: loading \}\}/);
+
+  const readFailureIndex = screen.indexOf("if (loadError)");
+  const webViewIndex = screen.indexOf("<FurnishWebView");
+  assert.ok(readFailureIndex >= 0 && readFailureIndex < webViewIndex);
+});
+
 test("scene changes debounce saves and flush on exit", () => {
   const screen = read(path.join("screens", "FurnishStudioScreen.tsx"));
 
