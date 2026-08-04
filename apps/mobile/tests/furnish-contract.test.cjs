@@ -51,7 +51,7 @@ test("studio blocks editing when the device cannot read a furnishing record", ()
   assert.match(screen, /accessibilityState=\{\{ disabled: loading \}\}/);
 
   const readFailureIndex = screen.indexOf("if (loadError)");
-  const webViewIndex = screen.indexOf("<FurnishWebView");
+  const webViewIndex = screen.indexOf("<FurnishWebView\n");
   assert.ok(readFailureIndex >= 0 && readFailureIndex < webViewIndex);
 });
 

@@ -43,6 +43,9 @@ export default function FurnishStudioScreen({ roomMesh, onBack, onProjectStatusC
   const setProject = useFurnishStore((state) => state.setProject);
   const project = useFurnishStore((state) => state.projectsByRoomId[roomMesh.id]);
   const loading = useFurnishStore((state) => state.loadingRoomIds[roomMesh.id] ?? false);
+  const loadError = useFurnishStore(
+    (state) => state.loadErrorsByRoomId[roomMesh.id]
+  );
   const saveError = useFurnishStore(
     (state) => state.saveErrorsByRoomId[roomMesh.id]
   );
@@ -286,6 +289,48 @@ export default function FurnishStudioScreen({ roomMesh, onBack, onProjectStatusC
     setRenderLoading(false);
     setRenderModalVisible(false);
   };
+
+  if (loadError) {
+    return (
+      <SafeAreaView style={styles.loadFailurePage}>
+        <Text
+          accessibilityLiveRegion="polite"
+          accessibilityRole="alert"
+          style={styles.loadFailureTitle}
+        >
+          软装记录暂时无法读取
+        </Text>
+        <Text style={styles.loadFailureText}>
+          设备中的原布局尚未被覆盖。请重试读取，或返回房源库稍后处理。
+        </Text>
+        <TouchableOpacity
+          accessibilityLabel={loading ? "正在重新读取软装记录" : "重试读取软装记录"}
+          accessibilityRole="button"
+          accessibilityState={{ disabled: loading }}
+          disabled={loading}
+          style={[
+            styles.loadFailureRetry,
+            loading ? styles.actionDisabled : null
+          ]}
+          onPress={() => {
+            void loadProject(roomMesh);
+          }}
+        >
+          <Text style={styles.loadFailureRetryText}>
+            {loading ? "正在重新读取…" : "重试读取"}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          accessibilityLabel="返回房源库"
+          accessibilityRole="button"
+          style={styles.loadFailureBack}
+          onPress={onBack}
+        >
+          <Text style={styles.loadFailureBackText}>返回房源库</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
 
   if (loading || !project) {
     return (
@@ -573,6 +618,56 @@ const styles = StyleSheet.create({
     color: "#6d6257",
     fontSize: 15,
     marginTop: 12
+  },
+  loadFailurePage: {
+    alignItems: "center",
+    backgroundColor: "#f7f1e8",
+    flex: 1,
+    justifyContent: "center",
+    padding: 28
+  },
+  loadFailureTitle: {
+    color: "#7f352b",
+    fontSize: 24,
+    fontWeight: "900",
+    textAlign: "center"
+  },
+  loadFailureText: {
+    color: "#65584b",
+    fontSize: 14,
+    lineHeight: 22,
+    marginTop: 12,
+    maxWidth: 360,
+    textAlign: "center"
+  },
+  loadFailureRetry: {
+    alignItems: "center",
+    backgroundColor: "#2f2a22",
+    borderRadius: 15,
+    justifyContent: "center",
+    marginTop: 24,
+    minHeight: 48,
+    paddingHorizontal: 22
+  },
+  loadFailureRetryText: {
+    color: "#fff8ef",
+    fontSize: 14,
+    fontWeight: "900"
+  },
+  loadFailureBack: {
+    alignItems: "center",
+    borderColor: "#b8aa98",
+    borderRadius: 15,
+    borderWidth: 1,
+    justifyContent: "center",
+    marginTop: 10,
+    minHeight: 44,
+    paddingHorizontal: 22
+  },
+  loadFailureBackText: {
+    color: "#51483e",
+    fontSize: 13,
+    fontWeight: "900"
   },
   topBar: {
     alignItems: "center",
