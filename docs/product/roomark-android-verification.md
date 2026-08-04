@@ -176,8 +176,8 @@
 - 同一房间重试仍复用现有在途请求去重；重试成功后只清除该房间错误并恢复原有 3D、自动保存和 Mock 概念图流程。
 - 新增 4 个存储、Zustand Store 和页面契约测试，覆盖读取失败与空记录/损坏内容区分、失败项目不发布、多房间隔离、重试成功以及 3D 挂载顺序。Mobile 全套现为 85 passed、0 failed。
 - TypeScript、Expo 公共配置、全仓公开内容、Web 页面、产品预检及 Rust 后端格式、Clippy 和测试全部通过。
-- `app:assembleDebug` 为 `BUILD SUCCESSFUL`；Debug APK 为 139,744,953 bytes。Release JavaScript bundle 写入 6 个本地资产，大小为 1,145,040 bytes。
-- API 34 模拟器保留现有数据覆盖安装后，房源库恢复 3 套对比和样例房型 4 件家具；正常读取进入工作室后本地 GLB 与“已恢复上次软装布局”出现，返回房源库并再次进入仍恢复布局，React Native、AndroidRuntime 与 Chromium 错误日志均为 0。
+- `app:assembleDebug` 为 `BUILD SUCCESSFUL`；Debug APK 为 139,744,953 bytes。当前提交的 Release JavaScript bundle 写入 6 个本地资产，大小为 1,145,114 bytes。
+- API 34 模拟器保留现有数据覆盖安装后，房源库恢复 3 套对比和样例房型 4 件家具；正常读取进入工作室后本地 GLB 与“已恢复上次软装布局”出现，返回房源库并再次进入仍恢复布局。应用 PID 日志没有 React Native JavaScript 错误或 AndroidRuntime 崩溃；复用模拟器数据时记录到 1 条不影响流程的 Chromium 缓存索引写入错误和 2 条 OpenGL swap-behavior 错误，仍需在实体设备兼容性验收中继续观察。
 - 本轮没有破坏模拟器数据库来伪造底层读取故障；阻断与重试行为的证据来自可控读取 Promise、真实 Store 状态流和页面契约。物理设备存储压力、进程终止和厂商系统兼容性仍是正式发布前验收门槛。
 
 ## 生产发布整改
