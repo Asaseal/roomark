@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { BackHandler, SafeAreaView, StatusBar, StyleSheet, Text } from "react-native";
+import { AppState, BackHandler, SafeAreaView, StatusBar, StyleSheet, Text } from "react-native";
 import { propertyCatalog } from "./data/propertyCatalog";
 import type { ProductScreen } from "./navigation/productScreens";
 import CompareScreen from "./screens/CompareScreen";
@@ -38,6 +38,16 @@ export default function App() {
   useEffect(() => {
     void hydrate();
   }, [hydrate]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextState) => {
+      if (nextState !== "active" && persistenceError && !pendingPersistence) {
+        void retryPersistence();
+      }
+    });
+
+    return () => subscription.remove();
+  }, [pendingPersistence, persistenceError, retryPersistence]);
 
   useEffect(() => {
     properties.forEach((property) => {
