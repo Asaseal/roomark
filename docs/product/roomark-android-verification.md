@@ -191,6 +191,19 @@
 - Mobile 全套现为 86 passed、0 failed；TypeScript 与 Expo 公共配置通过。该故障隔离主要由可控 Promise 测试证明，模拟器只验证正常保存路径，不伪造底层永久 pending。
 - API 34 模拟器保留 4 件现有布局进入样例房型，新增工作桌后显示“已保存”，返回房源库显示 5 件，再次进入仍显示“已恢复上次软装布局”和本地模型已加载；没有保存错误、React Native JavaScript 错误或 AndroidRuntime 崩溃，应用 PID 仅保留 2 条既有 OpenGL swap-behavior 信息。
 
+## 房源状态离开前台重试
+
+2026-08-04 补齐房源记录写入失败后的生命周期保护。此前选择房源、调整对比或保存扫描结果写入失败后只保留 Library 重试入口；如果用户没有手动重试就切到后台并被系统终止，当前内存中的最新修改可能丢失。本轮完成：
+
+- `App` 订阅 `AppState.change`；仅在离开 `active`、已有 `persistenceError` 且 `pendingPersistence` 为 `false` 时调用现有 `retryPersistence`。
+- 重试写入 Store 当前最新产品快照，继续复用全局串行队列、保存中状态和错误提示；没有错误或已有写入时不增加设备 I/O。
+- 不增加写入超时、持续定时器或后台服务，避免不可取消旧写入迟到覆盖新数据，也不扩大产品范围。
+- 新增 1 项生命周期契约，先在缺少 `AppState` 订阅时得到预期失败，再由最小实现转为通过；Mobile 全套为 87 passed、0 failed，TypeScript、Expo 公共配置、仓库契约、公开内容策略与 Rust 后端验证全部通过。
+- 当前 Debug APK 使用仓库便携 JDK 17 构建成功并覆盖安装到 API 34 模拟器。实际把样例房型移出对比后由 3 套变为 2 套，切到桌面再恢复仍为 2 套；加回后再次切后台与恢复为 3 套，测试数据已还原，日志没有 React Native JavaScript 错误、`Unable to load script` 或 Android 致命异常。
+- 模拟器正常写入不能伪造底层 AsyncStorage 拒绝；错误条件、无并发写入保护与订阅清理由自动化契约覆盖，实体手机存储压力和进程终止仍保留为正式发布验收项。
+
+证据目录：`work/artifacts/product-save-background-retry-loop`（不提交仓库）。
+
 ## 生产发布整改
 
 2026-07-29 审计发现，历史 `release` 构建类型仍引用仓库内的 debug keystore，因此上文 APK 只能证明独立运行和模拟器流程，不能作为正式签名或商店发布证据。本轮已完成：
