@@ -92,6 +92,19 @@ test("product writes are serialized without poisoning later saves", () => {
   }
 });
 
+test("app retries a failed product write before leaving the foreground", () => {
+  const app = read("App.tsx");
+
+  assert.match(app, /import \{[^}]*AppState[^}]*\} from "react-native"/);
+  assert.match(app, /AppState\.addEventListener\("change", \(nextState\) => \{/);
+  assert.match(
+    app,
+    /nextState !== "active" && persistenceError && !pendingPersistence/
+  );
+  assert.match(app, /void retryPersistence\(\)/);
+  assert.match(app, /return \(\) => subscription\.remove\(\)/);
+});
+
 test("local reads are bounded without timing out non-cancellable writes", () => {
   const productStorage = read(path.join("services", "productStorage.ts"));
   const furnishStorage = read(path.join("services", "furnishStorage.ts"));
