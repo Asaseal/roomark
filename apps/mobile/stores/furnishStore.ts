@@ -5,6 +5,7 @@ import { loadFurnishProject, saveFurnishProject } from "../services/furnishStora
 type FurnishState = {
   projectsByRoomId: Record<string, FurnishProject>;
   loadingRoomIds: Partial<Record<string, true>>;
+  loadErrorsByRoomId: Partial<Record<string, string>>;
   recoveryWarningsByRoomId: Partial<Record<string, string>>;
   saveErrorsByRoomId: Partial<Record<string, string>>;
   pendingSaveRoomIds: Partial<Record<string, true>>;
@@ -49,6 +50,7 @@ function enqueueFurnishPersistence(operation: () => Promise<void>): Promise<void
 export const useFurnishStore = create<FurnishState>((set, get) => ({
   projectsByRoomId: {},
   loadingRoomIds: {},
+  loadErrorsByRoomId: {},
   recoveryWarningsByRoomId: {},
   saveErrorsByRoomId: {},
   pendingSaveRoomIds: {},
@@ -69,6 +71,19 @@ export const useFurnishStore = create<FurnishState>((set, get) => ({
       const project = result.project;
       set((state) => {
         const nextWarnings = { ...state.recoveryWarningsByRoomId };
+        const nextLoadErrors = { ...state.loadErrorsByRoomId };
+
+        if (result.readFailed) {
+          delete nextWarnings[roomMesh.id];
+          nextLoadErrors[roomMesh.id] =
+            result.warning ?? "软装记录暂时无法读取，请重试。";
+          return {
+            recoveryWarningsByRoomId: nextWarnings,
+            loadErrorsByRoomId: nextLoadErrors
+          };
+        }
+
+        delete nextLoadErrors[roomMesh.id];
         if (result.warning) {
           nextWarnings[roomMesh.id] = result.warning;
         } else {
@@ -80,6 +95,7 @@ export const useFurnishStore = create<FurnishState>((set, get) => ({
             ...state.projectsByRoomId,
             [roomMesh.id]: project
           },
+          loadErrorsByRoomId: nextLoadErrors,
           recoveryWarningsByRoomId: nextWarnings
         };
       });
