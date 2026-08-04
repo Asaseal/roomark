@@ -74,15 +74,22 @@ test("mock render is labelled honestly and writes status back to the product", (
   assert.match(store, /updateProjectStatus:/);
 });
 
-test("project status updates do not reload already hydrated furnishing projects", () => {
+test("project status updates do not reload hydrated or read-failed furnishing projects", () => {
   const app = read("App.tsx");
 
   assert.match(app, /furnishProjectRequestsRef/);
   assert.match(
     app,
-    /if \(projectsByRoomId\[roomId\] \|\| furnishProjectRequestsRef\.current\.has\(roomId\)\) \{/
+    /state\.loadErrorsByRoomId/
   );
-  assert.match(app, /\[loadProject, projectsByRoomId, propertiesById\]/);
+  assert.match(
+    app,
+    /projectsByRoomId\[roomId\][\s\S]*loadErrorsByRoomId\[roomId\][\s\S]*furnishProjectRequestsRef\.current\.has\(roomId\)/
+  );
+  assert.match(
+    app,
+    /\[loadErrorsByRoomId, loadProject, projectsByRoomId, propertiesById\]/
+  );
 });
 
 test("furnish writes are serialized and expose retryable failure state", () => {
