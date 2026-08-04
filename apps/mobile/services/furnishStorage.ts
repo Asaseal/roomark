@@ -12,19 +12,30 @@ const storagePrefix = "roomark:furnish-project:";
 export { createEmptyFurnishProject } from "./furnishProjectRecovery";
 
 export async function loadFurnishProject(roomMesh: RoomMesh): Promise<FurnishProjectLoadResult> {
+  let stored: string | null;
+
   try {
-    const stored = await runStorageRead(
+    stored = await runStorageRead(
       () => AsyncStorage.getItem(`${storagePrefix}${roomMesh.id}`),
       { operationName: "软装记录读取" }
     );
+  } catch {
+    return {
+      project: createEmptyFurnishProject(roomMesh),
+      recovered: false,
+      readFailed: true,
+      warning: "软装记录暂时无法读取，设备中的原布局尚未被覆盖。"
+    };
+  }
 
-    if (!stored) {
-      return {
-        project: createEmptyFurnishProject(roomMesh),
-        recovered: false
-      };
-    }
+  if (!stored) {
+    return {
+      project: createEmptyFurnishProject(roomMesh),
+      recovered: false
+    };
+  }
 
+  try {
     return recoverFurnishProject(JSON.parse(stored) as unknown, roomMesh);
   } catch {
     return recoverFurnishProject(undefined, roomMesh);

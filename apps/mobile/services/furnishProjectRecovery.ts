@@ -10,6 +10,7 @@ import type {
 export type FurnishProjectLoadResult = {
   project: FurnishProject;
   recovered: boolean;
+  readFailed?: boolean;
   warning?: string;
 };
 
