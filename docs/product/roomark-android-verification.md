@@ -189,6 +189,7 @@
 - 不增加写超时。AsyncStorage 写入不可取消，继续避免超时放行后由迟到旧写覆盖新数据。
 - 新增真实 Promise 行为测试：A 写入保持 pending 时，B 的底层写入仍会启动并可先成功；A 的 pending 状态保持到自身结算。同房间连续写入和失败后重试测试继续通过。
 - Mobile 全套现为 86 passed、0 failed；TypeScript 与 Expo 公共配置通过。该故障隔离主要由可控 Promise 测试证明，模拟器只验证正常保存路径，不伪造底层永久 pending。
+- API 34 模拟器保留 4 件现有布局进入样例房型，新增工作桌后显示“已保存”，返回房源库显示 5 件，再次进入仍显示“已恢复上次软装布局”和本地模型已加载；没有保存错误、React Native JavaScript 错误或 AndroidRuntime 崩溃，应用 PID 仅保留 2 条既有 OpenGL swap-behavior 信息。
 
 ## 生产发布整改
 
