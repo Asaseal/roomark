@@ -68,10 +68,10 @@ function loadStore() {
   const loadFurnishProject = (roomMesh) => {
     loadCount += 1;
     return new Promise((resolve) => {
-      pendingLoads.set(roomMesh.id, () => resolve({
+      pendingLoads.set(roomMesh.id, (result = {
         project: createProject(roomMesh),
         recovered: false
-      }));
+      }) => resolve(result));
     });
   };
   const module = { exports: {} };
@@ -150,6 +150,43 @@ test("concurrent reads for one room reuse the same storage operation", async () 
 
   assert.equal(firstProject.roomId, studioRoom.id);
   assert.equal(secondProject.roomId, studioRoom.id);
+});
+
+test("read failure blocks one room until its retry succeeds", async () => {
+  const { store, pendingLoads } = loadStore();
+  const failedLoad = store.getState().loadProject(studioRoom);
+  const backgroundLoad = store.getState().loadProject(backgroundRoom);
+
+  pendingLoads.get(studioRoom.id)({
+    project: createProject(studioRoom),
+    recovered: false,
+    readFailed: true,
+    warning: "软装记录暂时无法读取，设备中的原布局尚未被覆盖。"
+  });
+  await failedLoad;
+
+  assert.equal(store.getState().projectsByRoomId[studioRoom.id], undefined);
+  assert.deepEqual(store.getState().loadErrorsByRoomId, {
+    [studioRoom.id]: "软装记录暂时无法读取，设备中的原布局尚未被覆盖。"
+  });
+
+  pendingLoads.get(backgroundRoom.id)();
+  await backgroundLoad;
+  assert.equal(
+    store.getState().projectsByRoomId[backgroundRoom.id].roomId,
+    backgroundRoom.id
+  );
+  assert.ok(store.getState().loadErrorsByRoomId[studioRoom.id]);
+
+  const retry = store.getState().loadProject(studioRoom);
+  pendingLoads.get(studioRoom.id)();
+  await retry;
+
+  assert.equal(
+    store.getState().projectsByRoomId[studioRoom.id].roomId,
+    studioRoom.id
+  );
+  assert.deepEqual(store.getState().loadErrorsByRoomId, {});
 });
 
 test("save failure and pending state stay isolated by room", async () => {
