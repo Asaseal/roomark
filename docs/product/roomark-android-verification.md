@@ -171,6 +171,7 @@
 
 - `FurnishProjectLoadResult.readFailed` 只标记 AsyncStorage 拒绝或 8 秒读取超时；存储键不存在仍创建正常空项目，JSON 损坏仍进入现有逐项恢复。
 - Store 使用 `loadErrorsByRoomId` 隔离每个房间的读取失败；失败结果中的临时空白项目不写入 `projectsByRoomId`，其他房间的成功读取不清除该错误。
+- App 后台预读取会跳过已有 `loadErrorsByRoomId` 的房间，房源状态变化不会无提示地再次访问失败存储；只有软装恢复页的用户动作会重试。
 - 软装页面在挂载 `FurnishWebView` 前显示阻断式恢复页，明确“设备中的原布局尚未被覆盖”，只提供“重试读取”和“返回房源库”；重试期间按钮禁用。
 - 同一房间重试仍复用现有在途请求去重；重试成功后只清除该房间错误并恢复原有 3D、自动保存和 Mock 概念图流程。
 - 新增 4 个存储、Zustand Store 和页面契约测试，覆盖读取失败与空记录/损坏内容区分、失败项目不发布、多房间隔离、重试成功以及 3D 挂载顺序。Mobile 全套现为 85 passed、0 failed。
