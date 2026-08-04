@@ -19,6 +19,7 @@ export default function App() {
   const furnishProjectRequestsRef = useRef(new Set<string>());
   const loadProject = useFurnishStore((state) => state.loadProject);
   const projectsByRoomId = useFurnishStore((state) => state.projectsByRoomId);
+  const loadErrorsByRoomId = useFurnishStore((state) => state.loadErrorsByRoomId);
   const hydrated = useProductStore((state) => state.hydrated);
   const hydrationError = useProductStore((state) => state.hydrationError);
   const persistenceError = useProductStore((state) => state.persistenceError);
@@ -41,7 +42,11 @@ export default function App() {
   useEffect(() => {
     properties.forEach((property) => {
       const roomId = property.roomMesh.id;
-      if (projectsByRoomId[roomId] || furnishProjectRequestsRef.current.has(roomId)) {
+      if (
+        projectsByRoomId[roomId] ||
+        loadErrorsByRoomId[roomId] ||
+        furnishProjectRequestsRef.current.has(roomId)
+      ) {
         return;
       }
 
@@ -50,7 +55,7 @@ export default function App() {
         furnishProjectRequestsRef.current.delete(roomId);
       });
     });
-  }, [loadProject, projectsByRoomId, propertiesById]);
+  }, [loadErrorsByRoomId, loadProject, projectsByRoomId, propertiesById]);
 
   useEffect(() => {
     const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
